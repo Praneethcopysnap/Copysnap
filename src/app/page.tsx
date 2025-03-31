@@ -1,7 +1,7 @@
-// src/app/page.tsx
+'use client'
 
 import Image from 'next/image'
-import logo from '../../public/Frame2.png' // adjust if your path is different
+import logo from '../../public/Frame2.png'
 
 export default function Home() {
   return (
@@ -13,9 +13,11 @@ export default function Home() {
           style={styles.logo}
           priority
         />
+
         <p style={styles.description}>
-          We are upgrading our look and feel of the application, we will be soon out.
+          We’re upgrading the look and feel of CopySnap. We’ll be back soon.
         </p>
+
         <p style={styles.subHeading}>Don’t want to miss the launch?</p>
         <p style={styles.subNote}>We will mail you for the updates.</p>
 
@@ -50,7 +52,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     padding: 0,
     backgroundColor: '#f9f9f9',
-    fontFamily: "'Noto Sans', sans-serif",
+    fontFamily: 'var(--font-noto-sans)',
     color: '#333',
     textAlign: 'center',
     display: 'flex',
@@ -68,6 +70,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: 'auto',
   },
   description: {
+    fontFamily: 'var(--font-lora)',
     fontSize: 14,
     color: '#444',
     marginTop: 24,
@@ -78,10 +81,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     fontSize: 14,
     marginBottom: 4,
+    fontFamily: 'var(--font-noto-sans)',
   },
   subNote: {
     fontSize: 13,
     color: '#555',
+    fontFamily: 'var(--font-noto-sans)',
   },
   inputContainer: {
     marginTop: 16,
@@ -108,7 +113,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     fontSize: 13,
     width: '100%',
-    fontFamily: "'Noto Sans', sans-serif",
+    fontFamily: 'var(--font-noto-sans)',
     color: '#333',
   },
 }
