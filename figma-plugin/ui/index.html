@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CopySnap</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #1F2937;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      font-weight: bold;
+      font-size: 18px;
+      margin-right: auto;
+    }
+    
+    .logo span:first-child {
+      color: #3B82F6;
+    }
+    
+    .logo span:last-child {
+      color: #10B981;
+    }
+    
+    button {
+      background-color: #3B82F6;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #2563EB;
+    }
+    
+    .secondary-button {
+      background-color: #E5E7EB;
+      color: #1F2937;
+    }
+    
+    .secondary-button:hover {
+      background-color: #D1D5DB;
+    }
+    
+    .section {
+      margin-bottom: 20px;
+    }
+    
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .card {
+      background-color: #F9FAFB;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    
+    .text-suggestion {
+      border: 1px solid #E5E7EB;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      background-color: white;
+      cursor: pointer;
+    }
+    
+    .text-suggestion:hover {
+      border-color: #3B82F6;
+    }
+    
+    .selected {
+      border-color: #3B82F6;
+      background-color: #EFF6FF;
+    }
+    
+    .element-label {
+      font-size: 12px;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+    
+    .element-type {
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    
+    .context-card {
+      background-color: #F3F4F6;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    
+    .tag {
+      display: inline-block;
+      background-color: #DBEAFE;
+      color: #1E40AF;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <span>Copy</span><span>Snap</span>
+    </div>
+    <button class="secondary-button">Workspaces</button>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">Selected Element</div>
+    <div class="card">
+      <div class="element-label">Type</div>
+      <div class="element-type">Primary Button</div>
+      <div class="element-label">Current Text</div>
+      <div>Sign up for free</div>
+      
+      <div class="context-card">
+        <div><strong>Context Analysis:</strong></div>
+        <div>This appears to be a CTA button on a landing page. The surrounding elements suggest this is for new user registration.</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">Copy Suggestions</div>
+    
+    <div class="text-suggestion selected">
+      <div>Get started for free</div>
+    </div>
+    
+    <div class="text-suggestion">
+      <div>Create your account</div>
+    </div>
+    
+    <div class="text-suggestion">
+      <div>Start your free trial</div>
+    </div>
+    
+    <div class="text-suggestion">
+      <div>Join now</div>
+    </div>
+    
+    <button>Generate more options</button>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">Active workspace</div>
+    <div style="display: flex; align-items: center;">
+      <div style="margin-right: auto;">E-commerce Website</div>
+      <div>
+        <span class="tag">Friendly</span>
+        <span class="tag">Casual</span>
+      </div>
+    </div>
+  </div>
+  
+  <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+    <button class="secondary-button">Save to library</button>
+    <button>Apply to design</button>
+  </div>
+  
+  <script>
+    // Basic plugin UI interaction
+    document.querySelectorAll('.text-suggestion').forEach(suggestion => {
+      suggestion.addEventListener('click', function() {
+        document.querySelectorAll('.text-suggestion').forEach(el => {
+          el.classList.remove('selected');
+        });
+        this.classList.add('selected');
+      });
+    });
+  </script>
+</body>
+</html> 

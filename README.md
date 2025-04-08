@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CopySnap
+
+CopySnap is a context-aware UX copy generator that helps designers, product managers, and writers create better microcopy for their digital products.
+
+## Key Features
+
+- **Context-Aware Copy Generation:** Generate UX copy based on product context from screens, documents, and brand voice
+- **Figma Plugin:** Generate copy directly within your design workflow
+- **Brand Voice Definition:** Define and maintain a consistent brand voice across all copy
+- **Content Library:** Save and organize all your UX copy in one place
+
+## Project Structure
+
+```
+copysnap/
+├── app/                  # Next.js application folder
+│   ├── components/       # Reusable React components
+│   ├── dashboard/        # Dashboard pages
+│   ├── figma-plugin/     # Figma plugin demo
+│   ├── login/            # Authentication pages
+│   ├── globals.css       # Global styles
+│   ├── layout.tsx        # Root layout component
+│   └── page.tsx          # Home/landing page
+├── public/               # Static assets
+├── next.config.js        # Next.js configuration
+├── package.json          # Dependencies and scripts
+├── postcss.config.js     # PostCSS configuration
+├── tailwind.config.js    # Tailwind CSS configuration
+└── tsconfig.json         # TypeScript configuration
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 16.8.0 or later
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Start the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development Roadmap
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [x] Landing page with waitlist signup
+- [x] User authentication (login/signup)
+- [x] Dashboard UI
+- [x] Figma plugin demo
+- [ ] Workspace management
+- [ ] Document upload and processing
+- [ ] Brand voice definition interface
+- [ ] Content library and organization
+- [ ] AI-powered copy generation
+- [ ] Figma plugin integration
 
-## Learn More
+## Logo Integration
+To properly display the CopySnap logo:
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create a `public/images` directory in the project root if it doesn't already exist
+2. Save the CopySnap logo file as `logo.png` in the `public/images` directory
+3. The logo will automatically appear in the header component 

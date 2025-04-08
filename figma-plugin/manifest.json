@@ -1,0 +1,27 @@
+{
+  "name": "CopySnap",
+  "id": "copysnap-plugin",
+  "api": "1.0.0",
+  "main": "code/plugin.js",
+  "ui": "ui/index.html",
+  "documentationLinks": [
+    {
+      "name": "Installation",
+      "link": "https://example.com/docs/installation"
+    },
+    {
+      "name": "Usage Guide",
+      "link": "https://example.com/docs/usage"
+    }
+  ],
+  "menu": [
+    {
+      "name": "Generate Copy",
+      "command": "generate"
+    },
+    {
+      "name": "Help & Resources",
+      "command": "help"
+    }
+  ]
+} 
