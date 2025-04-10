@@ -1,8 +1,16 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Database } from '@/types/supabase'
 
-// Create a single instance to be used throughout the app
-export const supabase = createClientComponentClient<Database>()
+// Environment check for SSG/build time
+const isBrowser = typeof window !== 'undefined'
+const hasSupabaseCredentials = 
+  process.env.NEXT_PUBLIC_SUPABASE_URL && 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Create a Supabase client conditionally based on environment availability
+export const supabase = isBrowser || hasSupabaseCredentials
+  ? createClientComponentClient<Database>()
+  : (null as any) // Fallback during build if credentials not available
 
 // Create admin client with service role for admin operations
 export const createAdminClient = () => {

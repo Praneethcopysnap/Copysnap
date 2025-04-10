@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, type ReactNode } from 'react';
 import { Workspace } from '../types/workspace';
 
 // Initial workspaces data
@@ -44,7 +44,7 @@ interface WorkspacesProviderProps {
 }
 
 // Create the context
-const WorkspacesContext = createContext<WorkspacesContextType | undefined>(undefined);
+const WorkspacesContext = createContext(undefined as WorkspacesContextType | undefined);
 
 // Create a provider component
 export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
@@ -64,12 +64,12 @@ export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
       }),
     };
     
-    setWorkspaces((prevWorkspaces) => [...prevWorkspaces, newWorkspace]);
+    setWorkspaces((prevWorkspaces: Workspace[]) => [...prevWorkspaces, newWorkspace]);
     return newWorkspace;
   };
 
   const getWorkspaceById = (id: string) => {
-    return workspaces.find(workspace => workspace.id === id);
+    return workspaces.find((workspace: Workspace) => workspace.id === id);
   };
 
   return (
