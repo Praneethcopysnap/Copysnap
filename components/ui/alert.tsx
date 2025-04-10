@@ -25,7 +25,7 @@ interface AlertProps
 
 const Alert = React.forwardRef(function Alert(
   props: AlertProps,
-  // @ts-ignore - Ref typing issue
+  // @ts-expect-error - Ref typing issue
   ref
 ) {
   const { className, variant, ...rest } = props;
@@ -42,7 +42,7 @@ Alert.displayName = "Alert"
 
 const AlertTitle = React.forwardRef(function AlertTitle(
   props: React.HTMLAttributes<HTMLHeadingElement>,
-  // @ts-ignore - Ref typing issue
+  // @ts-expect-error - Ref typing issue
   ref
 ) {
   return (
@@ -57,7 +57,7 @@ AlertTitle.displayName = "AlertTitle"
 
 const AlertDescription = React.forwardRef(function AlertDescription(
   props: React.HTMLAttributes<HTMLDivElement>,
-  // @ts-ignore - Ref typing issue
+  // @ts-expect-error - Ref typing issue
   ref
 ) {
   return (
