@@ -24,17 +24,16 @@ interface AlertProps
 }
 
 const Alert = React.forwardRef(function Alert(
-  props: AlertProps,
-  // @ts-expect-error - Ref typing issue
+  { className, variant, ...props }: AlertProps,
+  // @ts-ignore - ref typing issue
   ref
 ) {
-  const { className, variant, ...rest } = props;
   return (
     <div
       ref={ref}
       role="alert"
       className={alertVariants({ variant, className })}
-      {...rest}
+      {...props}
     />
   );
 });
@@ -42,7 +41,7 @@ Alert.displayName = "Alert"
 
 const AlertTitle = React.forwardRef(function AlertTitle(
   props: React.HTMLAttributes<HTMLHeadingElement>,
-  // @ts-expect-error - Ref typing issue
+  // @ts-ignore - ref typing issue
   ref
 ) {
   return (
@@ -57,7 +56,7 @@ AlertTitle.displayName = "AlertTitle"
 
 const AlertDescription = React.forwardRef(function AlertDescription(
   props: React.HTMLAttributes<HTMLDivElement>,
-  // @ts-expect-error - Ref typing issue
+  // @ts-ignore - ref typing issue
   ref
 ) {
   return (

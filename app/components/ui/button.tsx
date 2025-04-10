@@ -1,7 +1,7 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
 interface ButtonProps {
-  children: any
+  children: ReactNode
   variant?: 'default' | 'ghost'
   className?: string
   onClick?: () => void

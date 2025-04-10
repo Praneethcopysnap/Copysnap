@@ -4,22 +4,40 @@ import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next()
+  
+  // Check if Supabase credentials are available
+  const hasSupabaseCredentials = 
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  // If credentials are missing (during build/deployment), allow the request to proceed
+  if (!hasSupabaseCredentials) {
+    console.warn('Supabase credentials not available in middleware')
+    return res
+  }
+  
   const supabase = createMiddlewareClient({ req: request, res })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  // If user is not signed in and the current path is not / or /login or /signup,
-  // redirect the user to /login
-  if (!session && !['/login', '/signup', '/'].includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+    // If user is not signed in and the current path is not / or /login or /signup,
+    // redirect the user to /login
+    if (!session && !['/login', '/signup', '/'].includes(request.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
 
-  // If user is signed in and the current path is /login or /signup,
-  // redirect the user to /dashboard
-  if (session && ['/login', '/signup'].includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    // If user is signed in and the current path is /login or /signup,
+    // redirect the user to /dashboard
+    if (session && ['/login', '/signup'].includes(request.nextUrl.pathname)) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  } catch (error) {
+    console.error('Error in middleware:', error)
+    // Allow the request to proceed even if there's an error
+    return res
   }
 
   return res
