@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react'
+import type { MouseEvent } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import SiteHeader from "@/app/components/SiteHeader"
 import DashboardSidebar from "@/app/components/Dashboard_Sidebar"
@@ -326,7 +327,7 @@ export default function WorkspacePage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-            onClick={(e) => {
+            onClick={(e: Event) => {
               if (e.target === e.currentTarget) {
                 setShowGenerateModal(false);
               }
@@ -338,7 +339,7 @@ export default function WorkspacePage() {
               exit={{ y: 50, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: Event) => e.stopPropagation()}
             >
               <h2 className="text-xl font-bold mb-4">Generate UX Copy</h2>
               

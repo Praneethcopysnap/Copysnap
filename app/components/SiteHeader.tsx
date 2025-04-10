@@ -3,14 +3,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { profileService } from '../services/profile';
+import { SignOutButton } from './SignOutButton';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
+  const [userName, setUserName] = useState('' as string);
+  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClientComponentClient();
   
   const handleSettingsClick = () => {
     router.push('/settings');
@@ -23,13 +30,6 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
   
   const handleProfileClick = () => {
     router.push('/settings/profile');
-    setShowDropdown(false);
-  };
-  
-  const handleSignOut = () => {
-    // In a real app, you would handle signing out here
-    // such as clearing tokens or state
-    router.push('/');
     setShowDropdown(false);
   };
   
@@ -61,6 +61,35 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setUserName('Anonymous');
+          return;
+        }
+
+        const profile = await profileService.getCurrentUserProfile();
+        console.log('Fetched profile:', profile);
+        
+        if (profile?.full_name) {
+          setUserName(profile.full_name);
+        } else {
+          setUserName('Anonymous');
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setUserName('Anonymous');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [pathname, supabase]);
   
   return (
     <div 
@@ -112,7 +141,9 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
                     <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
                       <span className="text-xs font-medium">JS</span>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">John Smith</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {isLoading ? 'Loading...' : userName}
+                    </span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       className={`h-4 w-4 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} 
@@ -132,12 +163,7 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
                       >
                         Profile Settings
                       </button>
-                      <button
-                        onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        Sign out
-                      </button>
+                      <SignOutButton />
                     </div>
                   )}
                 </div>

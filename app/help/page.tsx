@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react'
+import { useState } from 'react'
+import * as React from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import SiteHeader from "../components/SiteHeader"
 import DashboardSidebar from '../components/Dashboard_Sidebar'
@@ -50,12 +52,12 @@ export default function HelpPage() {
       )
     : faqs;
     
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: { [key: string]: string }) => ({ ...prev, [name]: value }));
   };
   
-  const handleSubmitForm = (e) => {
+  const handleSubmitForm = (e: any) => {
     e.preventDefault();
     setIsSubmitting(true);
     

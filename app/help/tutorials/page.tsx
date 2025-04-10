@@ -69,7 +69,7 @@ export default function TutorialsPage() {
     ? tutorials 
     : tutorials.filter(tutorial => tutorial.category === activeCategory);
   
-  const handlePlayVideo = (id) => {
+  const handlePlayVideo = (id: string) => {
     setActiveVideo(id);
     // In a real app, this would trigger a video player modal
   };
