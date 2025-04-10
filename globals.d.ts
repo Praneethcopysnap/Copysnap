@@ -4,11 +4,28 @@ declare module '*.tsx' {
   export default Component;
 }
 
-// Individual component declarations
-declare module 'app/components/Header' {
-  const Header: any;
-  export default Header;
+// Add className support to react-icons
+import { IconBaseProps as OriginalIconBaseProps } from 'react-icons';
+
+declare module 'react-icons' {
+  export interface IconBaseProps extends OriginalIconBaseProps {
+    className?: string;
+  }
 }
+
+// Fix for React hooks generics
+import React from 'react';
+
+declare module 'react' {
+  function useState<T>(initialState: T | (() => T)): [T, React.Dispatch<React.SetStateAction<T>>];
+  function useState<T = undefined>(): [T | undefined, React.Dispatch<React.SetStateAction<T | undefined>>];
+  
+  function useRef<T>(initialValue: T): React.RefObject<T>;
+  function useRef<T = undefined>(): React.RefObject<T | undefined>;
+}
+
+// Individual component declarations
+// Header declaration removed to avoid conflicts
 
 declare module 'app/components/Waitlist_Form' {
   const Waitlist_Form: any;

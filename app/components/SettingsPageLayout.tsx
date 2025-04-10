@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Header from './Header';
+import SiteHeader from './SiteHeader';
 import SettingsSidebar from './settings/SettingsSidebar';
 
 interface SettingsPageLayoutProps {
@@ -18,7 +18,7 @@ export default function SettingsPageLayout({
 }: SettingsPageLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={true} />
+      <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
         <div className="w-64">

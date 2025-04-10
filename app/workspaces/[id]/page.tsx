@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Header from '../../components/Header'
-import DashboardSidebar from '../../components/Dashboard_Sidebar'
+import SiteHeader from "@/app/components/SiteHeader"
+import DashboardSidebar from "@/app/components/Dashboard_Sidebar"
 import { useWorkspaces } from '../../context/workspaces'
 import { FiArrowLeft, FiPlus } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -27,7 +27,7 @@ export default function WorkspacePage() {
   if (!workspace) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Header isLoggedIn={true} />
+        <SiteHeader isLoggedIn={true} />
         
         <div className="fixed-layout">
           <DashboardSidebar />
@@ -98,7 +98,7 @@ export default function WorkspacePage() {
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={true} />
+      <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
         <DashboardSidebar />

@@ -1,12 +1,13 @@
 import React from 'react'
-import Header from '../components/Header'
+import { useRouter } from 'next/navigation'
+import SiteHeader from "../components/SiteHeader"
 import DashboardSidebar from '../components/Dashboard_Sidebar'
 import BrandVoiceForm from '../components/Brand_VoiceForm'
 
 export default function BrandVoicePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={true} />
+      <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
         <DashboardSidebar />

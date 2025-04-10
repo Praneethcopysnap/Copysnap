@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Header from '../components/Header'
+import SiteHeader from "../components/SiteHeader"
 import DashboardSidebar from '../components/Dashboard_Sidebar'
 
 // FAQ data
@@ -90,7 +90,7 @@ export default function HelpPage() {
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={true} />
+      <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
         <DashboardSidebar />

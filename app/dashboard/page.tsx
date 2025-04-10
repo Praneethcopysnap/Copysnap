@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Header from '../components/Header'
-import DashboardSidebar from '../components/Dashboard_Sidebar'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import SiteHeader from '../components/SiteHeader'
+import Dashboard_Sidebar from '../components/Dashboard_Sidebar'
 import { FiEdit2, FiFileText, FiUser, FiShare2, FiCheckCircle, FiPlus, FiBell, FiInfo } from 'react-icons/fi'
 
 // Mock recent activity data
@@ -151,7 +153,7 @@ export default function Dashboard() {
   // For demo purposes, we'll assume they are
   const isLoggedIn = true;
   
-  const handleCreateWorkspace = (e: React.FormEvent) => {
+  const handleCreateWorkspace = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!formData.name.trim()) {
@@ -188,10 +190,10 @@ export default function Dashboard() {
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={isLoggedIn} />
+      <SiteHeader isLoggedIn={isLoggedIn} />
       
       <div className="fixed-layout">
-        <DashboardSidebar />
+        <Dashboard_Sidebar />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full p-6">

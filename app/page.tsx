@@ -1,11 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import Header from './components/Header'
+import React, { ReactNode } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import SiteHeader from './components/SiteHeader'
 import Waitlist_Form from './components/Waitlist_Form'
-import { FiArrowRight, FiCheck, FiX, FiUser, FiLayers, FiCpu, FiEdit } from 'react-icons/fi'
+import { FiArrowRight, FiCheck, FiX, FiUser, FiLayers, FiCpu, FiEdit, FiCopy, FiExternalLink } from 'react-icons/fi'
 import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+// Type definitions
+type ToastType = 'success' | 'error';
 
 // Mock data for demo widget
 const mockFrames = [
@@ -69,12 +75,142 @@ const testimonials = [
   }
 ];
 
+// Enhanced button component with animation
+const AnimatedButton = ({ 
+  children, 
+  onClick, 
+  className, 
+  disabled = false 
+}: { 
+  children: any, 
+  onClick?: () => void, 
+  className: string,
+  disabled?: boolean 
+}) => (
+  <motion.button
+    className={className}
+    onClick={onClick}
+    disabled={disabled}
+    whileHover={disabled ? {} : { scale: 1.03 }}
+    whileTap={disabled ? {} : { scale: 0.97 }}
+    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+  >
+    {children}
+  </motion.button>
+);
+
+// Toast notification component
+const Toast = ({ message, type, onClose }: { message: string, type: ToastType, onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+    
+    return () => clearTimeout(timer);
+  }, [onClose]);
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className={`fixed bottom-4 right-4 z-50 py-3 px-5 rounded-md shadow-md flex items-center space-x-2 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+      }`}
+    >
+      <div className="p-1 bg-white bg-opacity-25 rounded-full">
+        {type === 'success' ? (
+          <FiCheck className="text-white" />
+        ) : (
+          <FiX className="text-white" />
+        )}
+      </div>
+      <p className="font-medium">{message}</p>
+    </motion.div>
+  );
+};
+
+// Missing components
+const LoadingSpinner = () => (
+  <div className="flex justify-center py-8">
+    <div className="animate-pulse flex space-x-4">
+      <div className="flex-1 space-y-4 py-1">
+        <div className="h-4 bg-gray-200 rounded-full w-3/4"></div>
+        <div className="h-4 bg-gray-200 rounded-full"></div>
+        <div className="h-4 bg-gray-200 rounded-full w-5/6"></div>
+      </div>
+    </div>
+  </div>
+)
+
+// Memoized GeneratedResults component to prevent unnecessary re-renders
+const GeneratedResults = React.memo(({ currentCopy }: { currentCopy: string[] }) => {
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  
+  const handleCopyClick = (text: string, index: number) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    });
+  };
+
+  return currentCopy.length > 0 ? (
+    <div className="space-y-3">
+      {currentCopy.map((copy, index) => (
+        <motion.div 
+          key={index}
+          className="p-4 border rounded-lg hover:border-primary cursor-pointer group relative"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          whileHover={{ y: -2, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
+          onClick={() => handleCopyClick(copy, index)}
+        >
+          <p className="pr-8">{copy}</p>
+          <span className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            {copiedIndex === index ? (
+              <motion.div 
+                initial={{ scale: 0 }} 
+                animate={{ scale: 1 }} 
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+              >
+                <FiCheck className="text-green-500" />
+              </motion.div>
+            ) : (
+              <FiCopy className="text-gray-400" />
+            )}
+          </span>
+        </motion.div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500 text-center py-8">
+      Click "Generate Copy" to see AI-powered suggestions
+    </p>
+  );
+});
+
 export default function Home() {
+  const router = useRouter();
   const [selectedFrame, setSelectedFrame] = useState(mockFrames[0].id);
-  const [generatedCopy, setGeneratedCopy] = useState([]);
+  const [generatedCopy, setGeneratedCopy] = useState(mockGeneratedCopy[mockFrames[0].id]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('designers');
   const [showStickyBanner, setShowStickyBanner] = useState(false);
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success' as ToastType
+  });
+  
+  // Refs for smooth scrolling
+  const demoRef = useRef(null);
+  const waitlistRef = useRef(null);
+  
+  // Update generatedCopy when selectedFrame changes
+  useEffect(() => {
+    setGeneratedCopy(mockGeneratedCopy[selectedFrame]);
+  }, [selectedFrame]);
   
   // Scroll listener for sticky banner
   useEffect(() => {
@@ -101,21 +237,154 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Mock copy generation
+  // Smooth scroll function
+  const scrollToRef = (ref: any) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+  
+  // Handle anchor links with smooth scrolling
+  const handleAnchorClick = (e: any, target: string) => {
+    e.preventDefault();
+    if (target === '#demo') {
+      scrollToRef(demoRef);
+    } else if (target === '#waitlist') {
+      scrollToRef(waitlistRef);
+    }
+  };
+  
+  // Mock copy generation with enhanced functionality
   const handleGenerateCopy = () => {
     setIsGenerating(true);
-    setGeneratedCopy([]);
     
     // Simulate API call
     setTimeout(() => {
       setGeneratedCopy(mockGeneratedCopy[selectedFrame]);
       setIsGenerating(false);
-    }, 1500);
+      setToast({
+        show: true,
+        message: 'Copy suggestions generated successfully!',
+        type: 'success'
+      });
+    }, 1000);
   };
+  
+  // Regenerate functionality
+  const handleRegenerate = () => {
+    // In a real app, this would generate slightly different variations
+    // For now, we'll just show the same results but with a loading delay
+    setIsGenerating(true);
+    
+    setTimeout(() => {
+      setGeneratedCopy(mockGeneratedCopy[selectedFrame]);
+      setIsGenerating(false);
+      setToast({
+        show: true,
+        message: 'New copy suggestions generated!',
+        type: 'success'
+      });
+    }, 800);
+  };
+  
+  // Toast handling
+  const closeToast = () => {
+    setToast(prev => ({ ...prev, show: false }));
+  };
+  
+  // Demo Widget Section with enhanced UI
+  const DemoSection = () => (
+    <section id="demo" ref={demoRef} className="py-20">
+      <div className="max-w-4xl mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Try It Yourself</h2>
+          <p className="text-center text-lg mb-12 max-w-2xl mx-auto text-gray-600">
+            See how CopySnap generates contextual copy based on your Figma frames.
+          </p>
+        </motion.div>
+        
+        <motion.div 
+          className="bg-white rounded-lg shadow-lg border overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <div className="bg-gray-50 border-b px-6 py-4 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-400"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+            <div className="w-3 h-3 rounded-full bg-green-400"></div>
+            <span className="text-xs text-gray-500 ml-2">CopySnap Figma Plugin</span>
+          </div>
+          
+          <div className="p-6">
+            <div className="mb-6">
+              <label htmlFor="frameSelect" className="block text-sm font-medium text-gray-700 mb-2">
+                Select Figma Frame
+              </label>
+              <select
+                id="frameSelect"
+                className="input w-full focus:ring-primary focus:border-primary transition-all"
+                value={selectedFrame}
+                onChange={(e) => setSelectedFrame(e.target.value)}
+              >
+                {mockFrames.map(frame => (
+                  <option key={frame.id} value={frame.id}>{frame.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <AnimatedButton
+              className={`btn-primary w-full mb-6 flex items-center justify-center ${isGenerating ? 'opacity-90' : ''}`}
+              onClick={handleGenerateCopy}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating...
+                </>
+              ) : 'Generate Copy'}
+            </AnimatedButton>
+            
+            <div className="border-t pt-6">
+              <h3 className="font-bold mb-4">Generated Copy Suggestions:</h3>
+              <p className="text-sm text-gray-500 mb-4">Click on a suggestion to copy it to clipboard</p>
+              
+              {isGenerating ? (
+                <LoadingSpinner />
+              ) : (
+                <GeneratedResults currentCopy={generatedCopy} />
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
   
   return (
     <>
-      <Header />
+      <SiteHeader />
+      
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <Toast 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={closeToast} 
+          />
+        )}
+      </AnimatePresence>
       
       {/* Hero Section with Product Animation */}
       <section className="min-h-screen flex flex-col items-center justify-center px-4 py-16 md:py-24">
@@ -126,20 +395,48 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-relaxed">
+            <motion.h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight bg-clip-text bg-gradient-to-r from-primary to-blue-700 text-transparent"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
               Context-Aware UX Copy for Digital Products
-            </h1>
-            <p className="text-lg md:text-xl mb-8">
+            </motion.h1>
+            <motion.p 
+              className="text-lg md:text-xl mb-8 text-gray-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
               Generate copy that understands your product, instantly.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <a href="#demo" className="btn-primary">
+            </motion.p>
+            <motion.div 
+              className="flex flex-wrap gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
+              <motion.a 
+                href="#demo" 
+                className="btn-primary flex items-center gap-2"
+                onClick={(e) => handleAnchorClick(e, '#demo')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
                 Try it in Figma
-              </a>
-              <a href="#waitlist" className="btn-secondary">
+                <FiArrowRight className="ml-1" />
+              </motion.a>
+              <motion.a 
+                href="#waitlist" 
+                className="btn-secondary"
+                onClick={(e) => handleAnchorClick(e, '#waitlist')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
                 Join the Waitlist
-              </a>
-            </div>
+              </motion.a>
+            </motion.div>
           </div>
           <motion.div
             className="relative bg-white p-8 rounded-lg shadow-xl border"
@@ -196,10 +493,11 @@ export default function Home() {
                 </motion.span>
               </div>
               <motion.button 
-                className="text-primary text-sm font-medium"
+                className="text-primary text-sm font-medium cursor-pointer hover:underline"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 2, duration: 0.3 }}
+                onClick={handleRegenerate}
               >
                 Regenerate
               </motion.button>
@@ -240,7 +538,7 @@ export default function Home() {
                 key={index}
                 className="bg-white p-6 rounded-lg shadow-md"
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
                 viewport={{ once: true, margin: "-100px" }}
               >
@@ -253,75 +551,8 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Live Demo Widget */}
-      <section id="demo" className="py-16">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-6">Try It Yourself</h2>
-          <p className="text-center text-lg mb-12 max-w-2xl mx-auto">
-            See how CopySnap generates contextual copy based on your Figma frames.
-          </p>
-          
-          <div className="bg-white rounded-lg shadow-lg p-6 border">
-            <div className="mb-6">
-              <label htmlFor="frameSelect" className="block text-sm font-medium text-gray-700 mb-2">
-                Select Figma Frame
-              </label>
-              <select
-                id="frameSelect"
-                className="input w-full"
-                value={selectedFrame}
-                onChange={(e) => setSelectedFrame(e.target.value)}
-              >
-                {mockFrames.map(frame => (
-                  <option key={frame.id} value={frame.id}>{frame.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            <button
-              className="btn-primary w-full mb-6"
-              onClick={handleGenerateCopy}
-              disabled={isGenerating}
-            >
-              {isGenerating ? 'Generating...' : 'Generate Copy'}
-            </button>
-            
-            <div className="border-t pt-6">
-              <h3 className="font-bold mb-4">Generated Copy Suggestions:</h3>
-              
-              {isGenerating ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-pulse flex space-x-4">
-                    <div className="flex-1 space-y-4 py-1">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded"></div>
-                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                  </div>
-                </div>
-              ) : generatedCopy.length > 0 ? (
-                <div className="space-y-3">
-                  {generatedCopy.map((copy, index) => (
-                    <motion.div 
-                      key={index}
-                      className="p-3 border rounded-lg hover:border-primary cursor-pointer"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <p>{copy}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-8">
-                  Click "Generate Copy" to see AI-powered suggestions
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Use the new Demo Section component */}
+      <DemoSection />
       
       {/* Why CopySnap is Different */}
       <section className="py-16 bg-gray-50">
@@ -353,7 +584,7 @@ export default function Home() {
                     key={index} 
                     className="hover:bg-gray-50"
                     initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
@@ -380,7 +611,7 @@ export default function Home() {
                 key={testimonial.id}
                 className="bg-white p-6 rounded-lg shadow-md border"
                 initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 viewport={{ once: true, margin: "-100px" }}
               >
@@ -515,7 +746,7 @@ export default function Home() {
       </section>
       
       {/* Waitlist Form */}
-      <section id="waitlist" className="py-16 bg-gradient-to-r from-primary/10 to-secondary/10">
+      <section id="waitlist" ref={waitlistRef} className="py-16 bg-gradient-to-r from-primary/10 to-secondary/10">
         <div className="max-w-xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Join the Waitlist</h2>
           <p className="mb-8">
@@ -525,19 +756,24 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Footer */}
+      {/* Footer - enhance with better hover effects */}
       <footer className="bg-white py-12 border-t">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="mb-4">
-                <Image 
-                  src="/images/logo.png" 
-                  alt="CopySnap Logo" 
-                  width={152} 
-                  height={40} 
-                  priority
-                />
+                <Link href="/" className="inline-block">
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Image 
+                      src="/images/logo.png" 
+                      alt="CopySnap Logo" 
+                      width={152} 
+                      height={40} 
+                      priority
+                      className="transition-opacity hover:opacity-90"
+                    />
+                  </motion.div>
+                </Link>
               </div>
               <p className="text-gray-600">
                 Context-aware UX copy generation for digital products.
@@ -545,18 +781,50 @@ export default function Home() {
             </div>
             <div>
               <h4 className="font-bold mb-4">Links</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-600 hover:text-primary">About Us</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-primary">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-600 hover:text-primary">Terms of Service</a></li>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/about" className="text-gray-600 hover:text-primary transition-colors inline-flex items-center">
+                    <span className="border-b border-transparent group-hover:border-primary">About Us</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="text-gray-600 hover:text-primary transition-colors inline-flex items-center">
+                    <span className="border-b border-transparent group-hover:border-primary">Privacy Policy</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="text-gray-600 hover:text-primary transition-colors inline-flex items-center">
+                    <span className="border-b border-transparent group-hover:border-primary">Terms of Service</span>
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-4">Contact</h4>
-              <p className="text-gray-600">hello@copysnap.ai</p>
+              <p className="mb-3">
+                <a href="mailto:hello@copysnap.ai" className="text-gray-600 hover:text-primary transition-colors inline-flex items-center gap-1 group">
+                  <span className="border-b border-transparent group-hover:border-primary">hello@copysnap.ai</span>
+                </a>
+              </p>
               <div className="flex space-x-4 mt-4">
-                <a href="#" className="text-gray-600 hover:text-primary">GitHub</a>
-                <a href="#" className="text-gray-600 hover:text-primary">Twitter</a>
+                <a 
+                  href="https://github.com/copysnap" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-gray-600 hover:text-primary transition-colors flex items-center gap-1 group"
+                >
+                  <span className="border-b border-transparent group-hover:border-primary">GitHub</span>
+                  <FiExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+                <a 
+                  href="https://twitter.com/copysnap" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-gray-600 hover:text-primary transition-colors flex items-center gap-1 group"
+                >
+                  <span className="border-b border-transparent group-hover:border-primary">Twitter</span>
+                  <FiExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
               </div>
             </div>
           </div>
@@ -566,21 +834,28 @@ export default function Home() {
         </div>
       </footer>
       
-      {/* Sticky CTA Banner */}
+      {/* Enhanced Sticky CTA Banner */}
       {showStickyBanner && (
         <motion.div 
-          className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 z-50"
+          className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t p-4 z-30"
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          transition={{ duration: 0.3 }}
+          exit={{ y: 100 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
         >
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between">
             <p className="font-medium mb-4 md:mb-0">
               Want copy that sounds like your product? Join the waitlist.
             </p>
-            <a href="#waitlist" className="btn-primary whitespace-nowrap">
-              Join Waitlist <FiArrowRight className="inline ml-1" />
-            </a>
+            <motion.a 
+              href="#waitlist" 
+              className="btn-primary whitespace-nowrap flex items-center gap-1"
+              onClick={(e) => handleAnchorClick(e, '#waitlist')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Join Waitlist <FiArrowRight className="ml-1" />
+            </motion.a>
           </div>
         </motion.div>
       )}

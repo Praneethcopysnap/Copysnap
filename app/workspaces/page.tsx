@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react'
-import Header from '../components/Header'
+import SiteHeader from '../components/SiteHeader'
 import DashboardSidebar from '../components/Dashboard_Sidebar'
 import WorkspaceGrid from '../components/Workspace_Grid'
 import { useWorkspaces } from '../context/workspaces'
@@ -45,7 +45,7 @@ export default function WorkspacesPage() {
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={true} />
+      <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
         <DashboardSidebar />

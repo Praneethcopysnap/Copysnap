@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import Header from '../../components/Header';
-import DashboardSidebar from '../../components/Dashboard_Sidebar';
+import { useRouter } from 'next/navigation';
+import SiteHeader from "@/app/components/SiteHeader";
+import DashboardSidebar from "@/app/components/Dashboard_Sidebar";
 import Link from 'next/link';
 
 // Tutorial data
@@ -75,7 +76,7 @@ export default function TutorialsPage() {
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header isLoggedIn={true} />
+      <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
         <DashboardSidebar />
