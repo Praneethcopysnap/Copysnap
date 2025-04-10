@@ -1,28 +1,38 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Create Supabase client using service role
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Get Supabase environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-if (!supabaseUrl || !serviceRoleKey) {
-  console.error('Missing Supabase environment variables for admin operations');
-}
+// Check if environment variables are available
+const isSupabaseConfigured = supabaseUrl && serviceRoleKey;
 
-// Use proper server-side client for admin operations
-const supabaseAdmin = createClient(
-  supabaseUrl || '',
-  serviceRoleKey || '',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+// Create Supabase admin client only if properly configured
+const supabaseAdmin = isSupabaseConfigured 
+  ? createClient(
+      supabaseUrl,
+      serviceRoleKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+  : null;
 
 export async function DELETE(request: Request, { params }: { params: { userId: string } }) {
   const userId = params.userId;
+
+  // Check if Supabase is configured
+  if (!isSupabaseConfigured || !supabaseAdmin) {
+    console.error('Supabase is not properly configured. Missing environment variables.');
+    return NextResponse.json(
+      { message: 'Server configuration error. Please check environment variables.' }, 
+      { status: 500 }
+    );
+  }
 
   if (!userId) {
     console.error('Missing userId in API request');
