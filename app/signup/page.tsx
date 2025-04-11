@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { profileService } from '../services/profile'
 
 export default function SignUp() {
   const [email, setEmail] = useState('')
@@ -33,6 +34,31 @@ export default function SignUp() {
     setLoading(true)
 
     try {
+      // First, explicitly check if the email is already registered by trying to sign in
+      const { error: signInCheckError } = await supabase.auth.signInWithPassword({
+        email,
+        password: 'check-if-exists-password-not-real', // Intentionally incorrect password
+      });
+
+      // Check for the specific error message that would indicate the user exists
+      console.log('Sign-in check error:', signInCheckError?.message);
+      if (signInCheckError) {
+        // If the error message indicates the email exists but password is wrong
+        if (!signInCheckError.message.includes('Invalid login credentials') &&
+            !signInCheckError.message.includes('Email not confirmed')) {
+          // Some other error, proceed with signup attempt
+          console.log('Proceeding with signup attempt');
+        } else {
+          // This email exists - show appropriate message
+          console.log('Email already exists - detected during pre-check');
+          setError('An account with this email already exists. Please sign in instead.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If we got here, attempt signup
+      console.log('Attempting to sign up with email:', email);
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -42,15 +68,41 @@ export default function SignUp() {
             full_name: fullName
           }
         }
-      })
+      });
 
-      if (authError) throw authError
+      console.log('Signup result:', { 
+        success: !authError, 
+        errorMessage: authError?.message,
+        user: authData?.user ? 'User data received' : 'No user data'
+      });
 
-      setSuccess(true)
+      // Check if user already exists error
+      if (authError) {
+        console.error('Signup error:', authError);
+        if (authError.message.includes('already registered') || 
+            authError.message.includes('already exists') ||
+            authError.message.includes('taken')) {
+          setError('An account with this email already exists. Please sign in instead.');
+          setLoading(false);
+          return;
+        }
+        throw authError;
+      }
+
+      // Check if the email address was previously registered but not confirmed
+      if (authData?.user?.identities?.length === 0) {
+        console.log('Email exists but not confirmed');
+        setError('An account with this email already exists. Please check your email for the verification link or try to sign in.');
+        setLoading(false);
+        return;
+      }
+
+      setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during sign up')
+      console.error('Signup error caught:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during sign up');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 

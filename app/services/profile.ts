@@ -154,20 +154,56 @@ export const profileService = {
 
   async checkEmailExists(email: string) {
     try {
-      const { data, error } = await supabase
+      console.log('Checking if email exists:', email);
+      
+      // Check in profiles table
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('email')
         .eq('email', email)
-        .single()
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error checking email in profiles:', profileError);
+        throw profileError;
+      }
+      
+      if (profileData) {
+        return true;
+      }
+      
+      // Also try checking if we can find a user auth record
+      // without using admin APIs (which aren't available client-side)
+      try {
+        const { error: signInError } = await supabase.auth.signInWithOtp({
+          email: email,
+          options: {
+            shouldCreateUser: false // This will fail if the user doesn't exist
+          }
+        });
+        
+        // If there's no error, it means the user exists in auth
+        if (!signInError) {
+          return true;
+        }
+        
+        // Check the error code - INVALID_EMAIL typically means non-existent user
+        if (signInError.message.includes('Invalid email')) {
+          return false;
+        }
+        
+        // If the error is not about an invalid email, the user might exist
+        console.log('Sign-in check result:', signInError.message);
+        
+      } catch (err) {
+        // Ignore errors from this check, it's just a secondary verification
+        console.log('Error in secondary email existence check:', err);
       }
 
-      return !!data
+      return false;
     } catch (error) {
-      console.error('Error checking email:', error)
-      throw error
+      console.error('Error checking email:', error);
+      throw error;
     }
   },
 
