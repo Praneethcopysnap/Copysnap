@@ -2,6 +2,18 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+// CORS headers for Figma plugin
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(request: Request) {
   try {
     const { email, password, source } = await request.json();
@@ -10,7 +22,7 @@ export async function POST(request: Request) {
     if (source !== 'figma_plugin') {
       return NextResponse.json(
         { error: 'Unauthorized source' },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -27,7 +39,7 @@ export async function POST(request: Request) {
       console.error('Authentication error:', error.message);
       return NextResponse.json(
         { error: error.message },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -37,12 +49,12 @@ export async function POST(request: Request) {
       name: data.user.user_metadata.full_name || email.split('@')[0],
       email: data.user.email,
       token: data.session.access_token,
-    });
+    }, { headers: corsHeaders });
   } catch (error) {
     console.error('Server error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 } 

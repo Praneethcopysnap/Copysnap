@@ -2,6 +2,18 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+// CORS headers for Figma plugin
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(request: Request) {
   try {
     // Get the authorization header
@@ -10,7 +22,7 @@ export async function POST(request: Request) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Missing or invalid authorization header' },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       );
     }
     
@@ -26,7 +38,7 @@ export async function POST(request: Request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: 'Invalid or expired token' },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       );
     }
     
@@ -61,13 +73,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       suggestions,
       success: true
-    });
+    }, { headers: corsHeaders });
     
   } catch (error) {
     console.error('Error generating copy:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
