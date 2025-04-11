@@ -1,17 +1,21 @@
 import React, { ReactNode } from 'react'
 
 interface ButtonProps {
-  children: ReactNode
+  children: any
   variant?: 'default' | 'ghost'
   className?: string
   onClick?: () => void
+  disabled?: boolean
+  type?: 'button' | 'submit' | 'reset'
 }
 
 export function Button({ 
   children, 
   variant = 'default', 
-  className = '', 
-  onClick 
+  className = '',
+  onClick,
+  disabled = false,
+  type = 'submit'
 }: ButtonProps) {
   const baseStyles = 'px-4 py-2 rounded-md transition-colors'
   const variantStyles = {
@@ -21,8 +25,10 @@ export function Button({
 
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${className}`}
+      className={`${baseStyles} ${variantStyles[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       onClick={onClick}
+      disabled={disabled}
+      type={type}
     >
       {children}
     </button>

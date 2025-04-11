@@ -40,7 +40,7 @@ interface WorkspacesContextType {
 
 // Define props interface for WorkspacesProvider
 interface WorkspacesProviderProps {
-  children: ReactNode;
+  children: any;
 }
 
 // Create the context
