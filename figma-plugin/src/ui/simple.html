@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CopySnap</title>
+  <style>
+    /* Common styles */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 16px;
+      font-size: 14px;
+    }
+    
+    /* Login form styles */
+    .login-form {
+      max-width: 300px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    /* Main plugin styles */
+    .container {
+      max-width: 100%;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo-text {
+      font-weight: 600;
+      font-size: 18px;
+      color: #3291FF;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #666;
+      background-color: #f5f5f5;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    
+    .user-name {
+      font-weight: bold;
+    }
+    
+    .btn-primary {
+      background-color: #3291FF;
+    }
+    
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+    
+    .section {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      margin-bottom: 12px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .status-message {
+      padding: 12px;
+      margin: 16px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    
+    .success {
+      background-color: #E8F5E9;
+      color: #2E7D32;
+      display: block;
+    }
+    
+    .error {
+      background-color: #FFEBEE;
+      color: #C62828;
+      display: block;
+    }
+    
+    .info {
+      background-color: #E3F2FD;
+      color: #1565C0;
+      display: block;
+    }
+    
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3291FF;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 2s linear infinite;
+      margin-bottom: 12px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Workspace styles */
+    .workspace-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .workspaces-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    
+    .workspace-item {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .workspace-item:last-child {
+      border-bottom: none;
+    }
+    
+    .workspace-item:hover {
+      background-color: #f8f8f8;
+    }
+    
+    .workspace-item.active {
+      background-color: #E3F2FD;
+    }
+    
+    .workspace-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .workspace-meta {
+      font-size: 11px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .text-link {
+      color: #3291FF;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .text-link:hover {
+      text-decoration: underline;
+    }
+    
+    /* History styles */
+    .history-list {
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+    
+    .history-item {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .history-item:hover {
+      background-color: #f8f8f8;
+    }
+    
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    
+    .history-content {
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
+    .history-meta {
+      font-size: 11px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .search-bar {
+      display: flex;
+      margin-bottom: 12px;
+    }
+    
+    .filter-options {
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    
+    .filter-options select {
+      margin-bottom: 0;
+      height: 35px;
+    }
+    
+    /* Suggestion styles */
+    .suggestions-container {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .suggestion-item {
+      padding: 12px;
+      margin-bottom: 12px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      border: 1px solid #eee;
+    }
+    
+    .suggestion-text {
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    
+    .suggestion-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .selection-info {
+      padding: 8px;
+      background-color: #E3F2FD;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login View -->
+  <div id="loginView">
+    <div class="login-form">
+      <div class="logo-text" style="font-size: 24px; margin-bottom: 16px;">CopySnap</div>
+      <h2>Welcome Back</h2>
+      <p>Sign in with your CopySnap account</p>
+      
+      <div class="form-group">
+        <label for="emailInput">Email</label>
+        <input type="email" id="emailInput" placeholder="your@email.com" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input type="password" id="passwordInput" placeholder="••••••••" required>
+      </div>
+      
+      <button id="loginButton" onclick="loginUser()">Sign In</button>
+      
+      <div id="loginStatus" class="status-message"></div>
+      
+      <div style="margin-top: 16px; font-size: 12px; color: #666;">
+        Don't have an account? <a href="https://copysnap.in/signup" target="_blank">Sign up</a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Plugin View -->
+  <div id="pluginView" style="display: none;">
+    <div class="container">
+      <div class="header">
+        <div class="logo-container">
+          <span class="logo-text">CopySnap</span>
+        </div>
+        <button id="closeBtn" class="btn-secondary" style="width: auto; padding: 6px 10px;">Close</button>
+      </div>
+      
+      <div id="userInfoBar" class="user-info">
+        <div>
+          <span id="userName" class="user-name">User</span>
+          <span id="userEmail" style="font-size: 11px; margin-left: 4px; opacity: 0.8;">user@example.com</span>
+        </div>
+        <span id="connectionStatus" style="margin-left: auto; font-size: 11px; padding: 2px 6px; border-radius: 10px; background-color: #E8F5E9; color: #2E7D32;">Online</span>
+      </div>
+      
+      <!-- Workspace Selection View -->
+      <div id="workspacesView">
+        <h3>Your Workspaces</h3>
+        <div id="workspacesList" class="workspaces-list">
+          <!-- Workspaces will be inserted here -->
+          <div class="loading-placeholder">
+            <div class="spinner" style="margin: 20px auto;"></div>
+            <p style="text-align: center;">Loading your workspaces...</p>
+          </div>
+        </div>
+        
+        <div style="margin-top: 16px; text-align: center;">
+          <a href="https://copysnap.in/workspaces/new" target="_blank" class="text-link">
+            <span style="display: inline-block; margin-right: 4px;">+</span> Create New Workspace
+          </a>
+          <button id="refreshWorkspacesBtn" class="btn-secondary" style="margin-left: 12px; width: auto; padding: 6px 10px;">
+            <span style="display: inline-block;">↻</span> Refresh
+          </button>
+        </div>
+      </div>
+      
+      <!-- Workspace Content View (History) -->
+      <div id="workspaceContentView" style="display: none;">
+        <div class="workspace-header">
+          <button id="backToWorkspacesBtn" class="btn-secondary" style="width: auto; padding: 6px 10px; margin-right: 8px;">
+            ← Back
+          </button>
+          <h3 id="currentWorkspaceName">Workspace Name</h3>
+        </div>
+        
+        <div class="search-bar">
+          <input type="text" id="searchHistoryInput" placeholder="Search copy history..." style="margin-bottom: 8px;">
+          <div class="filter-options">
+            <select id="historyFilterSelect">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="copyHistoryList" class="history-list">
+          <!-- Copy history will be inserted here -->
+        </div>
+        
+        <button id="generateNewCopyBtn" class="btn-primary" style="margin-top: 16px;">Generate New Copy</button>
+      </div>
+      
+      <!-- Copy Generation Flow -->
+      <div id="copyGenerationView" style="display: none;">
+        <div class="workspace-header">
+          <button id="backToHistoryBtn" class="btn-secondary" style="width: auto; padding: 6px 10px; margin-right: 8px;">
+            ← Back
+          </button>
+          <h3>Generate UX Copy</h3>
+        </div>
+        
+        <div class="section">
+          <p>Select a frame or text element in your Figma file to generate copy.</p>
+          <button id="selectFrameBtn" class="btn-primary">Select Element</button>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div id="loadingIndicator" class="loading">
+          <div class="spinner"></div>
+          <p>Processing...</p>
+        </div>
+        
+        <div id="configSection" style="display: none;">
+          <div class="selection-info">
+            <strong>Selected:</strong> <span id="selectedElementName">Frame name</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="copyType">Copy Type</label>
+            <select id="copyType">
+              <option value="button">Button</option>
+              <option value="header">Header</option>
+              <option value="label">Label</option>
+              <option value="tooltip">Tooltip</option>
+              <option value="error">Error Message</option>
+              <option value="cta">Call to Action</option>
+              <option value="description">Description</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="copyTone">Tone</label>
+            <select id="copyTone">
+              <option value="professional">Professional</option>
+              <option value="friendly">Friendly</option>
+              <option value="casual">Casual</option>
+              <option value="formal">Formal</option>
+              <option value="technical">Technical</option>
+              <option value="enthusiastic">Enthusiastic</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="additionalContext">Additional Context (Optional)</label>
+            <textarea id="additionalContext" rows="3" placeholder="Add any additional details that might help generate better copy..."></textarea>
+          </div>
+          
+          <button id="generateCopyBtn" class="btn-primary">Generate Copy Suggestions</button>
+        </div>
+      </div>
+      
+      <!-- Results View -->
+      <div id="resultsSection" style="display: none;">
+        <div class="workspace-header">
+          <button id="backToConfigBtn" class="btn-secondary" style="width: auto; padding: 6px 10px; margin-right: 8px;">
+            ← Back
+          </button>
+          <h3>Copy Suggestions</h3>
+        </div>
+        
+        <div id="suggestions" class="suggestions-container"></div>
+        
+        <div class="action-buttons" style="margin-top: 16px; display: flex; gap: 8px;">
+          <button id="regenerateBtn" class="btn-secondary">Regenerate</button>
+          <button id="saveToWorkspaceBtn" class="btn-primary">Save to Workspace</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // API Configuration
+    const API_CONFIG = {
+      baseUrl: 'https://www.copysnap.in/api',
+      useApi: true,  // Set to false to force offline mode
+      timeout: 8000  // API timeout in ms
+    };
+    
+    // DOM Elements - Login
+    const loginView = document.getElementById('loginView');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginButton = document.getElementById('loginButton');
+    const loginStatus = document.getElementById('loginStatus');
+    
+    // DOM Elements - Main Plugin
+    const pluginView = document.getElementById('pluginView');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const connectionStatus = document.getElementById('connectionStatus');
+    
+    // DOM Elements - Workspaces
+    const workspacesView = document.getElementById('workspacesView');
+    const workspacesList = document.getElementById('workspacesList');
+    const refreshWorkspacesBtn = document.getElementById('refreshWorkspacesBtn');
+    const workspaceContentView = document.getElementById('workspaceContentView');
+    const currentWorkspaceName = document.getElementById('currentWorkspaceName');
+    const backToWorkspacesBtn = document.getElementById('backToWorkspacesBtn');
+    const copyHistoryList = document.getElementById('copyHistoryList');
+    const searchHistoryInput = document.getElementById('searchHistoryInput');
+    const historyFilterSelect = document.getElementById('historyFilterSelect');
+    const generateNewCopyBtn = document.getElementById('generateNewCopyBtn');
+    
+    // DOM Elements - Copy Generation
+    const copyGenerationView = document.getElementById('copyGenerationView');
+    const backToHistoryBtn = document.getElementById('backToHistoryBtn');
+    const selectFrameBtn = document.getElementById('selectFrameBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const configSection = document.getElementById('configSection');
+    const selectedElementName = document.getElementById('selectedElementName');
+    const copyType = document.getElementById('copyType');
+    const copyTone = document.getElementById('copyTone');
+    const additionalContext = document.getElementById('additionalContext');
+    const generateCopyBtn = document.getElementById('generateCopyBtn');
+    
+    // DOM Elements - Results
+    const resultsSection = document.getElementById('resultsSection');
+    const backToConfigBtn = document.getElementById('backToConfigBtn');
+    const suggestions = document.getElementById('suggestions');
+    const regenerateBtn = document.getElementById('regenerateBtn');
+    const saveToWorkspaceBtn = document.getElementById('saveToWorkspaceBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    
+    // State
+    let currentUser = null;
+    let selectedNode = null;
+    let currentWorkspace = null;
+    let copyHistory = [];
+    let generatedSuggestions = [];
+    
+    // Login function using email and password
+    function loginUser() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      
+      // Basic validation
+      if (!email || !password) {
+        showMessage(loginStatus, 'Please enter both email and password', 'error');
+        return;
+      }
+      
+      console.log("Login attempt with email:", email);
+      
+      // Disable login button
+      loginButton.disabled = true;
+      loginButton.textContent = 'Signing in...';
+      
+      // Show processing message
+      showMessage(loginStatus, `Logging in...`, 'info');
+      
+      if (API_CONFIG.useApi) {
+        // Try online login
+        authenticateWithApi(email, password)
+          .then(userData => {
+            if (userData) {
+              // API login successful
+              completeLogin(userData);
+            } else {
+              // Authentication failed
+              loginButton.disabled = false;
+              loginButton.textContent = 'Sign In';
+              showMessage(loginStatus, 'Authentication failed. Please check your credentials.', 'error');
+            }
+          })
+          .catch(error => {
+            console.error('API error:', error);
+            loginButton.disabled = false;
+            loginButton.textContent = 'Sign In';
+            showMessage(loginStatus, `Error: ${error.message || 'Could not connect to CopySnap'}`, 'error');
+          });
+      } else {
+        // Use mock login for testing
+        mockLogin(email, password);
+      }
+    }
+    
+    // Authenticate with the CopySnap API using email and password
+    async function authenticateWithApi(email, password) {
+      try {
+        const response = await fetchWithTimeout(`${API_CONFIG.baseUrl}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            source: 'figma_plugin'
+          })
+        }, API_CONFIG.timeout);
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            showMessage(loginStatus, 'Invalid email or password', 'error');
+            return null;
+          }
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('API authentication successful:', data);
+        
+        // Return user data
+        return {
+          id: data.id || 'online-user',
+          name: data.name || email.split('@')[0],
+          email: email,
+          token: data.token || `api-token-${Date.now()}`,
+          isOnline: true
+        };
+      } catch (error) {
+        console.error('Authentication error:', error);
+        return null;
+      }
+    }
+    
+    // Mock login for testing when API is not available
+    function mockLogin(email, password) {
+      // Simulate API delay
+      setTimeout(() => {
+        if (password.length >= 6) {
+          // Mock successful login
+          const userData = {
+            id: 'mock-user-123',
+            name: email.split('@')[0],
+            email: email,
+            token: `mock-token-${Date.now()}`,
+            isOnline: false
+          };
+          completeLogin(userData);
+        } else {
+          // Mock failed login
+          loginButton.disabled = false;
+          loginButton.textContent = 'Sign In';
+          showMessage(loginStatus, 'Invalid email or password', 'error');
+        }
+      }, 1000);
+    }
+    
+    // Complete the login process with user data
+    function completeLogin(userData) {
+      // Show success message
+      const mode = userData.isOnline ? 'online' : 'offline';
+      showMessage(loginStatus, `Success! Logged in as ${userData.name}`, 'success');
+      
+      // Store user data
+      currentUser = userData;
+      
+      // Notify the plugin about successful login
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'login-success',
+          user: userData
+        } 
+      }, '*');
+      
+      // Load workspaces
+      setTimeout(() => {
+        showPluginView(userData);
+        loadWorkspaces();
+      }, 800);
+    }
+    
+    // Fetch with timeout utility
+    async function fetchWithTimeout(url, options, timeout) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+    
+    // Utility to show messages
+    function showMessage(element, message, type = 'info') {
+      element.textContent = message;
+      element.className = 'status-message ' + type;
+    }
+    
+    // Switch to plugin view
+    function showPluginView(user) {
+      // Store user
+      currentUser = user;
+      
+      // Update UI with user info
+      userName.textContent = user.name;
+      userEmail.textContent = user.email;
+      
+      // Update connection status
+      if (user.isOnline) {
+        connectionStatus.textContent = 'Online';
+        connectionStatus.style.backgroundColor = '#E8F5E9';
+        connectionStatus.style.color = '#2E7D32';
+      } else {
+        connectionStatus.textContent = 'Offline';
+        connectionStatus.style.backgroundColor = '#FFEBEE';
+        connectionStatus.style.color = '#C62828';
+      }
+      
+      // Hide login, show plugin
+      loginView.style.display = 'none';
+      pluginView.style.display = 'block';
+      
+      console.log('Switched to plugin view for user:', user);
+    }
+    
+    // Load workspaces from API or generate mock data
+    function loadWorkspaces() {
+      workspacesList.innerHTML = '<div class="loading-placeholder"><div class="spinner" style="margin: 20px auto;"></div><p style="text-align: center;">Loading your workspaces...</p></div>';
+      
+      if (currentUser.isOnline && API_CONFIG.useApi) {
+        // Fetch workspaces from API
+        fetchWorkspacesFromApi()
+          .then(workspaces => {
+            if (workspaces && workspaces.length > 0) {
+              displayWorkspaces(workspaces);
+            } else {
+              displayMockWorkspaces();
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching workspaces:', error);
+            displayMockWorkspaces();
+          });
+      } else {
+        // Display mock workspaces after delay
+        setTimeout(() => {
+          displayMockWorkspaces();
+        }, 1000);
+      }
+    }
+    
+    // Fetch workspaces from the API
+    async function fetchWorkspacesFromApi() {
+      try {
+        const response = await fetchWithTimeout(`${API_CONFIG.baseUrl}/workspaces`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          }
+        }, API_CONFIG.timeout);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Workspaces loaded:', data);
+        
+        return data.workspaces || [];
+      } catch (error) {
+        console.error('Workspace fetch error:', error);
+        return null;
+      }
+    }
+    
+    // Display workspaces in the UI
+    function displayWorkspaces(workspaces) {
+      workspacesList.innerHTML = '';
+      
+      if (!workspaces || workspaces.length === 0) {
+        workspacesList.innerHTML = '<div style="padding: 20px; text-align: center;">No workspaces found. Create your first workspace.</div>';
+        return;
+      }
+      
+      workspaces.forEach(workspace => {
+        const wsElement = document.createElement('div');
+        wsElement.className = 'workspace-item';
+        wsElement.innerHTML = `
+          <div class="workspace-name">${workspace.name}</div>
+          <div class="workspace-meta">
+            <span>${workspace.copyCount || 0} items</span>
+            <span>Last updated: ${formatDate(workspace.updatedAt)}</span>
+          </div>
+        `;
+        
+        // Add click handler to select workspace
+        wsElement.addEventListener('click', () => {
+          selectWorkspace(workspace);
+        });
+        
+        workspacesList.appendChild(wsElement);
+      });
+    }
+    
+    // Display mock workspaces for testing
+    function displayMockWorkspaces() {
+      const mockWorkspaces = [
+        { id: 'ws-1', name: 'My First Project', copyCount: 12, updatedAt: new Date(Date.now() - 3600000) },
+        { id: 'ws-2', name: 'Website Redesign', copyCount: 28, updatedAt: new Date(Date.now() - 86400000) },
+        { id: 'ws-3', name: 'Mobile App Copy', copyCount: 7, updatedAt: new Date(Date.now() - 259200000) }
+      ];
+      
+      displayWorkspaces(mockWorkspaces);
+    }
+    
+    // Select a workspace and load its content
+    function selectWorkspace(workspace) {
+      console.log('Selected workspace:', workspace);
+      currentWorkspace = workspace;
+      
+      // Update workspace name in UI
+      currentWorkspaceName.textContent = workspace.name;
+      
+      // Show workspace content view, hide workspaces list
+      workspacesView.style.display = 'none';
+      workspaceContentView.style.display = 'block';
+      
+      // Load copy history for workspace
+      loadCopyHistory(workspace.id);
+    }
+    
+    // Load copy history for a workspace
+    function loadCopyHistory(workspaceId) {
+      copyHistoryList.innerHTML = '<div class="loading-placeholder"><div class="spinner" style="margin: 20px auto;"></div><p style="text-align: center;">Loading copy history...</p></div>';
+      
+      if (currentUser.isOnline && API_CONFIG.useApi) {
+        // Fetch copy history from API
+        fetchCopyHistoryFromApi(workspaceId)
+          .then(history => {
+            if (history && history.length > 0) {
+              displayCopyHistory(history);
+              copyHistory = history;
+            } else {
+              displayMockCopyHistory();
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching copy history:', error);
+            displayMockCopyHistory();
+          });
+      } else {
+        // Display mock copy history after delay
+        setTimeout(() => {
+          displayMockCopyHistory();
+        }, 800);
+      }
+    }
+    
+    // Fetch copy history from the API
+    async function fetchCopyHistoryFromApi(workspaceId) {
+      try {
+        const response = await fetchWithTimeout(`${API_CONFIG.baseUrl}/workspaces/${workspaceId}/history`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          }
+        }, API_CONFIG.timeout);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Copy history loaded:', data);
+        
+        return data.history || [];
+      } catch (error) {
+        console.error('Copy history fetch error:', error);
+        return null;
+      }
+    }
+    
+    // Display copy history in the UI
+    function displayCopyHistory(history) {
+      copyHistoryList.innerHTML = '';
+      
+      if (!history || history.length === 0) {
+        copyHistoryList.innerHTML = '<div style="padding: 20px; text-align: center;">No copy history found. Generate your first copy.</div>';
+        return;
+      }
+      
+      history.forEach(item => {
+        const historyElement = document.createElement('div');
+        historyElement.className = 'history-item';
+        historyElement.innerHTML = `
+          <div class="history-content">${item.content}</div>
+          <div class="history-meta">
+            <span>${item.type} (${item.tone})</span>
+            <span>${formatDate(item.createdAt)}</span>
+          </div>
+        `;
+        
+        historyElement.addEventListener('click', () => {
+          // Copy to clipboard
+          navigator.clipboard.writeText(item.content).catch(err => {
+            console.error('Could not copy text: ', err);
+            alert('Selected: ' + item.content);
+          });
+          
+          // Show confirmation
+          showMessage(statusMessage, 'Copied to clipboard!', 'success');
+        });
+        
+        copyHistoryList.appendChild(historyElement);
+      });
+    }
+    
+    // Display mock copy history for testing
+    function displayMockCopyHistory() {
+      const mockHistory = [
+        { id: 'cp-1', content: 'Get Started Today', type: 'button', tone: 'friendly', createdAt: new Date(Date.now() - 3600000) },
+        { id: 'cp-2', content: 'Transform Your Design Process', type: 'header', tone: 'professional', createdAt: new Date(Date.now() - 86400000) },
+        { id: 'cp-3', content: 'Enter your email address', type: 'label', tone: 'neutral', createdAt: new Date(Date.now() - 172800000) },
+        { id: 'cp-4', content: 'Choose a plan that works for your team', type: 'description', tone: 'casual', createdAt: new Date(Date.now() - 259200000) },
+        { id: 'cp-5', content: 'Sorry, we couldn\'t process your payment', type: 'error', tone: 'professional', createdAt: new Date(Date.now() - 345600000) }
+      ];
+      
+      copyHistory = mockHistory;
+      displayCopyHistory(mockHistory);
+    }
+    
+    // Format date for display
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+      
+      if (isNaN(date.getTime())) {
+        return 'Unknown date';
+      }
+      
+      if (diffDays === 0) {
+        return 'Today';
+      } else if (diffDays === 1) {
+        return 'Yesterday';
+      } else if (diffDays < 7) {
+        return `${diffDays} days ago`;
+      } else {
+        return date.toLocaleDateString();
+      }
+    }
+    
+    // Generate examples of copy based on type and tone
+    function getExampleCopy(type, tone, index) {
+      // Create different examples based on type, tone and index
+      const examples = {
+        button: {
+          friendly: [
+            'Get Started',
+            'Join Us Today',
+            'Try It Free'
+          ],
+          professional: [
+            'Request Demo',
+            'Start Free Trial',
+            'Learn More'
+          ],
+          casual: [
+            'Let\'s Go!',
+            'Count Me In',
+            'Show Me How'
+          ],
+          formal: [
+            'Proceed',
+            'Submit Request',
+            'Continue'
+          ]
+        },
+        header: {
+          friendly: [
+            'Welcome to Your New Experience',
+            'You\'re Going to Love This',
+            'Join Thousands of Happy Users'
+          ],
+          professional: [
+            'Enterprise Solutions for Modern Teams',
+            'Streamline Your Workflow Today',
+            'Accelerate Your Business Growth'
+          ],
+          casual: [
+            'Hey There, Ready to Rock?',
+            'The Awesome Solution You\'ve Been Waiting For',
+            'Say Goodbye to Boring Software'
+          ],
+          formal: [
+            'Introducing Premium Enterprise Services',
+            'Professional Solutions for Discerning Clients',
+            'Optimized Productivity Framework'
+          ]
+        },
+        description: {
+          friendly: [
+            'We built this tool to make your life easier. You\'ll find everything you need right at your fingertips.',
+            'Our team worked hard to create something you\'ll love using every day. Let us know what you think!',
+            'Join our community of happy users who have transformed their workflow with our simple solution.'
+          ],
+          professional: [
+            'Our enterprise solution provides comprehensive tools to optimize your business processes and increase ROI.',
+            'Designed for modern teams, this platform offers seamless integration with your existing workflow.',
+            'Leverage our powerful features to gain meaningful insights and drive strategic decision-making.'
+          ],
+          casual: [
+            'This thing is super easy to use - promise! Just click around and you\'ll figure it out in no time.',
+            'We cut out all the boring stuff so you can focus on what matters. And it\'s actually fun to use!',
+            'No more headaches! Our tool makes everything simple, even for the tech-challenged among us.'
+          ],
+          formal: [
+            'The system has been meticulously engineered to facilitate optimal workflow integration and efficiency.',
+            'We present a comprehensive suite of functionalities designed to address complex enterprise requirements.',
+            'Our solution offers unparalleled performance metrics when implemented within established frameworks.'
+          ]
+        },
+        error: {
+          friendly: [
+            'Oops! Something went wrong. Let\'s try that again, shall we?',
+            'That didn\'t work as expected. Give it another try?',
+            'Well, that didn\'t go as planned. Let\'s take another shot!'
+          ],
+          professional: [
+            'We encountered an error processing your request. Please try again.',
+            'Your operation could not be completed. Please review and retry.',
+            'An unexpected issue occurred. Please attempt the action again.'
+          ],
+          casual: [
+            'Whoops! We messed up. Our bad. Try again?',
+            'Well that was awkward... want to give it another go?',
+            'Huh, that\'s weird. Mind trying again?'
+          ],
+          formal: [
+            'The system encountered an exception processing your request. Kindly reattempt.',
+            'We regret to inform you that your operation was unsuccessful. Please retry.',
+            'An operational irregularity has been detected. Please initiate the process again.'
+          ]
+        },
+        label: {
+          friendly: [
+            'Your Email',
+            'Tell Us Your Name',
+            'Choose Your Options'
+          ],
+          professional: [
+            'Email Address',
+            'Full Name',
+            'Select Preferences'
+          ],
+          casual: [
+            'What\'s your email?',
+            'Your name here',
+            'Pick your favorites'
+          ],
+          formal: [
+            'Electronic Mail Address',
+            'Legal Full Name',
+            'Selection Preferences'
+          ]
+        }
+      };
+      
+      // Default type and tone if not found
+      const defaultType = 'button';
+      const defaultTone = 'professional';
+      const defaultIndex = 0;
+      
+      // Get the right examples or fallback to defaults
+      const typeExamples = examples[type] || examples[defaultType];
+      const toneExamples = typeExamples[tone] || typeExamples[defaultTone];
+      const example = toneExamples[index] || toneExamples[defaultIndex];
+      
+      return example;
+    }
+    
+    // Start the copy generation process
+    function startCopyGeneration() {
+      // Hide workspace content view and show copy generation view
+      workspaceContentView.style.display = 'none';
+      copyGenerationView.style.display = 'block';
+      
+      // Reset UI elements
+      suggestions.innerHTML = '';
+      loadingIndicator.style.display = 'block';
+      statusMessage.style.display = 'none';
+      
+      // Get values from form
+      const type = copyType.value;
+      const tone = copyTone.value;
+      const context = additionalContext.value;
+      
+      // Generate suggestions
+      generateCopySuggestions(type, tone, context);
+    }
+    
+    // Generate copy suggestions
+    function generateCopySuggestions(type, tone, context = '') {
+      const token = localStorage.getItem('copysnap_token');
+      
+      // Check if token exists and make API call
+      if (token && navigator.onLine) {
+        // Make API call to generate copy
+        fetch(`${API_CONFIG.baseUrl}/generate-copy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            workspaceId: currentWorkspace ? currentWorkspace.id : null,
+            type: type,
+            tone: tone,
+            context: context,
+            elementName: selectedNode ? selectedNode.name : '',
+            elementType: selectedNode ? selectedNode.type : '',
+            elementData: selectedNode
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('API request failed');
+          }
+          return response.json();
+        })
+        .then(data => {
+          loadingIndicator.style.display = 'none';
+          displaySuggestions(data.suggestions);
+        })
+        .catch(error => {
+          console.error('Error generating copy:', error);
+          fallbackToOfflineGeneration(type, tone);
+        });
+      } else {
+        // No token or offline, use fallback
+        fallbackToOfflineGeneration(type, tone);
+      }
+    }
+    
+    // Fallback to offline generation when API is unavailable
+    function fallbackToOfflineGeneration(type, tone) {
+      loadingIndicator.style.display = 'none';
+      
+      // Generate 3 example suggestions
+      const suggestions = [
+        getExampleCopy(type, tone, 0),
+        getExampleCopy(type, tone, 1),
+        getExampleCopy(type, tone, 2)
+      ];
+      
+      // Add a small delay to simulate API call
+      setTimeout(() => {
+        displaySuggestions(suggestions);
+      }, 500);
+    }
+    
+    // Display suggestions in the UI
+    function displaySuggestions(suggestionsList) {
+      // Clear existing
+      suggestions.innerHTML = '';
+      
+      // Add each suggestion
+      suggestionsList.forEach((text, i) => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        
+        // Create text element
+        const textElem = document.createElement('div');
+        textElem.className = 'suggestion-text';
+        textElem.textContent = text;
+        div.appendChild(textElem);
+        
+        // Create action buttons
+        const actions = document.createElement('div');
+        actions.className = 'suggestion-actions';
+        
+        // Copy button
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btn-primary';
+        copyBtn.style.width = 'auto';
+        copyBtn.style.padding = '6px 10px';
+        copyBtn.textContent = 'Copy';
+        copyBtn.addEventListener('click', () => {
+          // Copy to clipboard
+          navigator.clipboard.writeText(text).catch(err => {
+            console.error('Could not copy text: ', err);
+            alert('Selected: ' + text);
+          });
+          showMessage(statusMessage, `Copied to clipboard!`, 'success');
+        });
+        actions.appendChild(copyBtn);
+        
+        // Rate buttons
+        ['👍', '👎'].forEach(rate => {
+          const rateBtn = document.createElement('button');
+          rateBtn.className = 'btn-secondary';
+          rateBtn.style.width = 'auto';
+          rateBtn.style.padding = '6px';
+          rateBtn.textContent = rate;
+          rateBtn.addEventListener('click', () => {
+            rateSuggestion(text, rate === '👍');
+            rateBtn.style.backgroundColor = rate === '👍' ? '#E8F5E9' : '#FFEBEE';
+          });
+          actions.appendChild(rateBtn);
+        });
+        
+        div.appendChild(actions);
+        suggestions.appendChild(div);
+      });
+      
+      // Show results section
+      copyGenerationView.style.display = 'none';
+      resultsSection.style.display = 'block';
+    }
+    
+    // Rate a suggestion (provides feedback to the API)
+    async function rateSuggestion(text, isPositive) {
+      const token = localStorage.getItem('copysnap_token');
+      
+      if (token && navigator.onLine) {
+        try {
+          const response = await fetch(`${API_CONFIG.baseUrl}/feedback`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              suggestion: text,
+              rating: isPositive ? 'positive' : 'negative',
+              workspaceId: currentWorkspace ? currentWorkspace.id : null
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error('API request failed');
+          }
+          
+          console.log('Feedback sent:', isPositive ? 'positive' : 'negative');
+        } catch (error) {
+          console.error('Error sending feedback:', error);
+        }
+      }
+      
+      // Show confirmation
+      showMessage(statusMessage, `Thanks for your feedback!`, 'success');
+    }
+    
+    // Save generated copy to workspace
+    async function saveCopyToWorkspace(suggestionIdx = 0) {
+      if (!generatedSuggestions || generatedSuggestions.length === 0) {
+        showMessage(statusMessage, 'No suggestions to save', 'error');
+        return;
+      }
+      
+      const suggestion = suggestionIdx < generatedSuggestions.length ? 
+        generatedSuggestions[suggestionIdx] : generatedSuggestions[0];
+      
+      if (API_CONFIG.useApi && currentUser.isOnline && currentWorkspace) {
+        try {
+          const response = await fetch(`${API_CONFIG.baseUrl}/workspaces/${currentWorkspace.id}/copy`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.token}`
+            },
+            body: JSON.stringify({
+              content: suggestion,
+              type: copyType.value,
+              tone: copyTone.value,
+              context: additionalContext.value || '',
+              elementName: selectedNode ? selectedNode.name : ''
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error('API request failed');
+          }
+          
+          showMessage(statusMessage, 'Copy saved to workspace', 'success');
+          
+          // Return to workspace content view after short delay
+          setTimeout(() => {
+            resultsSection.style.display = 'none';
+            copyGenerationView.style.display = 'none';
+            workspaceContentView.style.display = 'block';
+            
+            // Reload copy history
+            loadCopyHistory(currentWorkspace.id);
+          }, 1000);
+        } catch (error) {
+          console.error('Error saving to workspace:', error);
+          showMessage(statusMessage, 'Error saving to workspace: ' + error.message, 'error');
+        }
+      } else {
+        // Mock saving
+        showMessage(statusMessage, 'Copy saved to workspace (mock)', 'success');
+        
+        // Add to mock history
+        const newHistoryItem = {
+          id: 'cp-' + Date.now(),
+          content: suggestion,
+          type: copyType.value,
+          tone: copyTone.value,
+          createdAt: new Date()
+        };
+        
+        copyHistory.unshift(newHistoryItem);
+        
+        // Return to workspace content view after short delay
+        setTimeout(() => {
+          resultsSection.style.display = 'none';
+          copyGenerationView.style.display = 'none';
+          workspaceContentView.style.display = 'block';
+          
+          // Update history display
+          displayCopyHistory(copyHistory);
+        }, 1000);
+      }
+    }
+    
+    // Event Listeners
+    // Login button
+    loginButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      loginUser();
+    });
+    
+    // Refresh workspaces button
+    refreshWorkspacesBtn.addEventListener('click', function() {
+      loadWorkspaces();
+    });
+    
+    // Generate new copy button
+    generateNewCopyBtn.addEventListener('click', function() {
+      startCopyGeneration();
+    });
+    
+    // Back to workspaces button
+    backToWorkspacesBtn.addEventListener('click', function() {
+      workspaceContentView.style.display = 'none';
+      workspacesView.style.display = 'block';
+    });
+    
+    // Back to history button
+    backToHistoryBtn.addEventListener('click', function() {
+      copyGenerationView.style.display = 'none';
+      workspaceContentView.style.display = 'block';
+    });
+    
+    // Select frame button
+    selectFrameBtn.addEventListener('click', function() {
+      // Request the plugin to process the selection
+      parent.postMessage({ 
+        pluginMessage: { type: 'generate-copy' } 
+      }, '*');
+      
+      showMessage(statusMessage, 'Please select an element in Figma', 'info');
+    });
+    
+    // Generate copy button
+    generateCopyBtn.addEventListener('click', function() {
+      startCopyGeneration();
+    });
+    
+    // Back to config button
+    backToConfigBtn.addEventListener('click', function() {
+      resultsSection.style.display = 'none';
+      copyGenerationView.style.display = 'block';
+      configSection.style.display = 'block';
+    });
+    
+    // Regenerate button
+    regenerateBtn.addEventListener('click', function() {
+      resultsSection.style.display = 'none';
+      copyGenerationView.style.display = 'block';
+      startCopyGeneration();
+    });
+    
+    // Save to workspace button
+    saveToWorkspaceBtn.addEventListener('click', function() {
+      saveCopyToWorkspace(0);
+    });
+    
+    // Close button
+    closeBtn.addEventListener('click', function() {
+      parent.postMessage({ 
+        pluginMessage: { type: 'close' } 
+      }, '*');
+    });
+    
+    // Search input
+    searchHistoryInput.addEventListener('input', function() {
+      filterCopyHistory();
+    });
+    
+    // History filter
+    historyFilterSelect.addEventListener('change', function() {
+      filterCopyHistory();
+    });
+    
+    // Filter copy history based on search and filter
+    function filterCopyHistory() {
+      if (!copyHistory || copyHistory.length === 0) return;
+      
+      const searchTerm = searchHistoryInput.value.toLowerCase();
+      const filterValue = historyFilterSelect.value;
+      
+      // Filter history items
+      const filtered = copyHistory.filter(item => {
+        // Text search filter
+        const matchesSearch = item.content.toLowerCase().includes(searchTerm) || 
+                             item.type.toLowerCase().includes(searchTerm) ||
+                             item.tone.toLowerCase().includes(searchTerm);
+        
+        // Date filter
+        let matchesDate = true;
+        const now = new Date();
+        const itemDate = new Date(item.createdAt);
+        
+        if (filterValue === 'today') {
+          matchesDate = itemDate.toDateString() === now.toDateString();
+        } else if (filterValue === 'week') {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          matchesDate = itemDate >= weekAgo;
+        } else if (filterValue === 'month') {
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          matchesDate = itemDate >= monthAgo;
+        }
+        
+        return matchesSearch && matchesDate;
+      });
+      
+      displayCopyHistory(filtered);
+    }
+    
+    // Listen for messages from the plugin
+    window.onmessage = function(event) {
+      const message = event.data.pluginMessage;
+      
+      if (!message) return;
+      
+      switch (message.type) {
+        case 'show-plugin-ui':
+          showPluginView(message.user);
+          loadWorkspaces();
+          break;
+          
+        case 'selection-data':
+          loadingIndicator.style.display = 'none';
+          
+          // Process the selected element
+          processSelectedElement(message.data);
+          break;
+          
+        default:
+          console.log('Unknown message type:', message.type);
+      }
+    };
+    
+    // Log when loaded
+    console.log("CopySnap plugin UI loaded");
+  </script>
+</body>
+</html> 
