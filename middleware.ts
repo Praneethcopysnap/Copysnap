@@ -24,8 +24,10 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getSession()
 
     // If user is not signed in and the current path is not / or /login or /signup or /forgot-password,
-    // redirect the user to /login
-    if (!session && !['/login', '/signup', '/', '/forgot-password'].includes(request.nextUrl.pathname)) {
+    // and not an API route, redirect the user to /login
+    if (!session && 
+        !['/login', '/signup', '/', '/forgot-password'].includes(request.nextUrl.pathname) && 
+        !request.nextUrl.pathname.startsWith('/api/')) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
