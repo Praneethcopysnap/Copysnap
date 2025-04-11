@@ -44,66 +44,176 @@ export default function AuthSidePanel() {
   };
 
   return (
-    <div className="hidden md:flex md:w-1/2 bg-gradient-to-r from-blue-50 to-blue-100 flex-col justify-center items-center p-12">
-      <div className="max-w-md mx-auto text-center">
-        <div className="mb-8">
-          <div className="relative w-full h-80">
-            <Image
-              src="/images/logo.png"
-              alt="CopySnap Logo"
-              width={300}
-              height={300}
-              className="p-6"
-              priority
-            />
-          </div>
+    <div className="hidden md:flex md:w-1/2 bg-gray-100 items-center justify-center">
+      <div className="max-w-md p-8 flex flex-col items-center">
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Image
+            src="/images/logo.png"
+            alt="CopySnap Logo"
+            width={180}
+            height={45}
+            className="mb-2"
+            priority
+          />
+        </motion.div>
+        
+        <div className="w-full relative">
+          <motion.div 
+            className="absolute -top-6 -left-6"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={[{ opacity: 1, scale: 1 }, floatingAnimation.animate]}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className="w-12 h-12 rounded-full bg-blue-100"></div>
+          </motion.div>
+          <motion.div 
+            className="absolute -bottom-6 -right-6"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={[{ opacity: 1, scale: 1 }, slowFloatingAnimation.animate]}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <div className="w-12 h-12 rounded-full bg-primary"></div>
+          </motion.div>
+          
+          <motion.div 
+            className="bg-white rounded-lg shadow-lg p-8 mb-8"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              duration: 0.6,
+              delay: 0.1,
+              type: "spring",
+              stiffness: 100
+            }}
+            whileHover={{ 
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+              y: -5,
+              transition: { duration: 0.2 }
+            }}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <motion.div 
+                className="h-2 w-2 rounded-full bg-red-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+              ></motion.div>
+              <motion.div 
+                className="h-2 w-2 rounded-full bg-yellow-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+              ></motion.div>
+              <motion.div 
+                className="h-2 w-2 rounded-full bg-green-400"
+                initial={{ opacity: 0 }}
+                animate={pulseAnimation.animate}
+                transition={{ duration: 0.3, delay: 0.8 }}
+              ></motion.div>
+              <motion.div 
+                className="h-12 w-12 rounded-full bg-gray-100"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+              ></motion.div>
+            </div>
+            
+            <div className="space-y-4">
+              <motion.div 
+                className="h-4 w-3/4 bg-gray-200 rounded"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+              ></motion.div>
+              <motion.div 
+                className="h-4 w-full bg-gray-200 rounded"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 1.0 }}
+              ></motion.div>
+              <motion.div 
+                className="h-4 w-1/2 bg-gray-200 rounded"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 1.1 }}
+              ></motion.div>
+            </div>
+            
+            <div className="mt-8 space-y-3">
+              <motion.div 
+                className="flex items-center space-x-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1.2 }}
+              >
+                <motion.div 
+                  className="h-10 w-10 rounded-full bg-primary/20"
+                  whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+                  animate={pulseAnimation.animate}
+                ></motion.div>
+                <div className="flex-1">
+                  <div className="h-3 w-1/2 bg-gray-200 rounded"></div>
+                  <div className="mt-1 h-3 w-3/4 bg-gray-200 rounded"></div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                className="flex items-center space-x-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1.3 }}
+              >
+                <motion.div 
+                  className="h-10 w-10 rounded-full bg-blue-100"
+                  whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+                ></motion.div>
+                <div className="flex-1">
+                  <div className="h-3 w-2/3 bg-gray-200 rounded"></div>
+                  <div className="mt-1 h-3 w-1/2 bg-gray-200 rounded"></div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-          Generate better UX copy for your product interfaces
-        </h2>
-        <p className="text-gray-600 mb-6">
-          CopySnap helps you create context-aware UX copy using real context from your designs and brand guidelines.
-        </p>
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-              <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <p className="text-sm text-gray-700 text-center">Context-aware generation</p>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-              <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-              </svg>
-            </div>
-            <p className="text-sm text-gray-700 text-center">Brand voice consistency</p>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-              <svg className="h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-sm text-gray-700 text-center">Design integration</p>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <p className="text-sm text-gray-700 italic">
-            "CopySnap has revolutionized our UX writing process, saving us countless hours and improving our product copy quality significantly."
-          </p>
-          <div className="mt-4 flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-              <span className="text-xs font-semibold">JS</span>
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium">Jane Smith</p>
-              <p className="text-xs text-gray-500">Product Designer, Acme Inc.</p>
-            </div>
-          </div>
-        </div>
+        
+        <motion.p 
+          className="text-center text-gray-600 text-sm mt-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.5 }}
+        >
+          Generate better UX copy for your product interfaces using real context from your designs.
+        </motion.p>
+
+        {/* Animated decorative elements */}
+        <motion.div 
+          className="absolute top-1/4 right-1/4 h-4 w-4 rounded-full bg-primary/30"
+          initial={{ opacity: 0 }}
+          animate={[
+            { opacity: 0.7 },
+            {
+              ...pulseAnimation.animate,
+              transition: { ...pulseAnimation.animate.transition, delay: 1 }
+            }
+          ]}
+        ></motion.div>
+        <motion.div 
+          className="absolute bottom-1/3 left-1/3 h-3 w-3 rounded-full bg-blue-300/50"
+          initial={{ opacity: 0 }}
+          animate={[
+            { opacity: 0.5 },
+            {
+              ...pulseAnimation.animate,
+              transition: { ...pulseAnimation.animate.transition, delay: 2 }
+            }
+          ]}
+        ></motion.div>
       </div>
     </div>
   )
