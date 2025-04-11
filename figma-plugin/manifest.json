@@ -1,27 +1,20 @@
 {
   "name": "CopySnap",
-  "id": "copysnap-plugin",
+  "id": "copysnap-ux-copy-generator",
   "api": "1.0.0",
-  "main": "code/plugin.js",
-  "ui": "ui/index.html",
-  "documentationLinks": [
-    {
-      "name": "Installation",
-      "link": "https://example.com/docs/installation"
-    },
-    {
-      "name": "Usage Guide",
-      "link": "https://example.com/docs/usage"
-    }
-  ],
+  "main": "dist/code.js",
+  "ui": "dist/simple.html",
   "menu": [
     {
-      "name": "Generate Copy",
-      "command": "generate"
+      "name": "Generate UX Copy",
+      "command": "generate-copy"
     },
     {
-      "name": "Help & Resources",
-      "command": "help"
+      "name": "About CopySnap",
+      "command": "about"
     }
+  ],
+  "editorType": [
+    "figma"
   ]
 } 

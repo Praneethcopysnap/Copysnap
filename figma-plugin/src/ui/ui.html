@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CopySnap</title>
+  <style>
+    :root {
+      --primary-color: #3291FF;
+      --primary-hover: #0070F3;
+      --secondary-color: #FF5500;
+      --bg-color: #FFFFFF;
+      --text-color: #333333;
+      --light-gray: #F5F5F5;
+      --border-color: #E5E5E5;
+      --radius: 8px;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 100%;
+      padding: 16px;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo {
+      width: 32px;
+      height: 32px;
+      margin-right: 8px;
+    }
+    
+    .logo-text {
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--primary-color);
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    button.secondary {
+      background-color: var(--light-gray);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+    }
+    
+    button.secondary:hover {
+      background-color: #E8E8E8;
+    }
+    
+    .button-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .intro {
+      margin-bottom: 16px;
+      padding: 12px;
+      background-color: #F0F7FF;
+      border-radius: var(--radius);
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    #status {
+      margin: 16px 0;
+      padding: 12px;
+      background-color: var(--light-gray);
+      border-radius: var(--radius);
+      display: none;
+    }
+    
+    #status.error {
+      background-color: #FFF0F0;
+      border-left: 4px solid #FF0000;
+      color: #D00000;
+    }
+    
+    #status.success {
+      background-color: #F0FFF4;
+      border-left: 4px solid #00C853;
+      color: #00843D;
+    }
+    
+    #resultsSection {
+      margin-top: 24px;
+      padding: 0;
+      border-radius: var(--radius);
+      background-color: white;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: none;
+    }
+    
+    .results-header {
+      padding: 12px 16px;
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .results-header button {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+    
+    .results-header button:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .results-content {
+      padding: 16px;
+    }
+    
+    .suggestion {
+      margin-bottom: 16px;
+      padding: 16px;
+      border-radius: var(--radius);
+      background-color: white;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+    
+    .suggestion:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .suggestion:last-child {
+      margin-bottom: 0;
+    }
+    
+    .suggestion-text {
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .suggestion-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .suggestions-empty {
+      padding: 32px 16px;
+      text-align: center;
+      color: #888;
+      font-style: italic;
+    }
+    
+    .copy-type-badge {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background-color: #E8F5FF;
+      color: var(--primary-color);
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    
+    .form-section {
+      margin-top: 16px;
+      padding: 16px;
+      background-color: var(--light-gray);
+      border-radius: var(--radius);
+    }
+    
+    .form-group {
+      margin-bottom: 12px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    
+    select, textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      font-family: inherit;
+      font-size: 14px;
+      background-color: white;
+    }
+    
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0;
+      text-align: center;
+      display: none;
+    }
+    
+    .spinner {
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 3px solid var(--primary-color);
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .emergency {
+      margin-top: 32px;
+      text-align: center;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    
+    .emergency:hover {
+      opacity: 1;
+    }
+    
+    #emergencyBtn {
+      background-color: var(--secondary-color);
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* Login styles */
+    #loginState {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .login-form {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 12px;
+      display: block;
+    }
+    
+    .login-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+    
+    .login-subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+    
+    .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+    
+    .input-group input:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(50, 145, 255, 0.2);
+    }
+    
+    .login-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .login-actions button {
+      width: 100%;
+      padding: 10px;
+    }
+    
+    .login-footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .error-message {
+      background-color: #FFF0F0;
+      color: #D00000;
+      padding: 10px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+    
+    /* User info styles */
+    .user-info {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      background-color: var(--light-gray);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .user-details {
+      flex-grow: 1;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .user-email {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .logout-button {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo-container">
+        <!-- Base64 encoded CopySnap logo -->
+        <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTk0Ljg2IDQ2LjI4QzkzLjk5IDM2LjA0IDg5LjMgMjcuMDEgODEuMjQgMjAuNjFDNzMuMTggMTQuMjEgNjIuNjkgMTEuMDYgNTIuNDYgMTEuOTNDNDIuMjIgMTIuNzkgMzMuMTkgMTcuNDkgMjYuNzkgMjUuNTRDMjAuMzkgMzMuNiAxNy4yNCA0NC4wOSAxOC4xMSA1NC4zM0MxOC45OCA2NC41NyAyMy42NyA3My42IDMxLjczIDc5Ljk5QzM5Ljc5IDg2LjM5IDUwLjI4IDg5LjU1IDYwLjUyIDg4LjY4QzcwLjc2IDg3LjgxIDc5Ljc5IDgzLjEyIDg2LjE5IDc1LjA2Qzg3LjQzIDczLjU1IDg4LjU0IDcxLjkzIDg5LjUzIDcwLjI0IiBzdHJva2U9IiMzMjkxRkYiIHN0cm9rZS13aWR0aD0iMTUiLz4KICA8cGF0aCBkPSJNNDYuMzIgNTMuMTNDNDUuODYgNDguMSA0My40MSA0My42MiAzOS4zMyA0MC41QzM1LjI1IDM3LjM3IDMwLjE1IDM1Ljg2IDI1LjExIDM2LjMyQzIwLjA4IDM2Ljc4IDE1LjYgMzkuMjMgMTIuNDcgNDMuMzFDOS4zNSA0Ny4zOSA3Ljg0IDUyLjQ5IDguMyA1Ny41MkM4Ljc2IDYyLjU1IDExLjIxIDY3LjAzIDE1LjI5IDcwLjE2QzE5LjM3IDczLjI4IDI0LjQ3IDc0Ljc5IDI5LjUgNzQuMzNDMzQuNTQgNzMuODcgMzkuMDIgNzEuNDIgNDIuMTQgNjcuMzRDNDUuMjcgNjMuMjYgNDYuNzggNTguMTYgNDYuMzIgNTMuMTNaIiBmaWxsPSIjMzI5MUZGIi8+Cjwvc3ZnPgo=" alt="CopySnap Logo">
+        <span class="logo-text">CopySnap</span>
+      </div>
+      <button id="closeBtn" class="secondary">Close</button>
+    </div>
+    
+    <!-- Login State -->
+    <div id="loginState" style="display: block;">
+      <div class="login-form">
+        <div class="login-header">
+          <img class="login-logo" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTk0Ljg2IDQ2LjI4QzkzLjk5IDM2LjA0IDg5LjMgMjcuMDEgODEuMjQgMjAuNjFDNzMuMTggMTQuMjEgNjIuNjkgMTEuMDYgNTIuNDYgMTEuOTNDNDIuMjIgMTIuNzkgMzMuMTkgMTcuNDkgMjYuNzkgMjUuNTRDMjAuMzkgMzMuNiAxNy4yNCA0NC4wOSAxOC4xMSA1NC4zM0MxOC45OCA2NC41NyAyMy42NyA3My42IDMxLjczIDc5Ljk5QzM5Ljc5IDg2LjM5IDUwLjI4IDg5LjU1IDYwLjUyIDg4LjY4QzcwLjc2IDg3LjgxIDc5Ljc5IDgzLjEyIDg2LjE5IDc1LjA2Qzg3LjQzIDczLjU1IDg4LjU0IDcxLjkzIDg5LjUzIDcwLjI0IiBzdHJva2U9IiMzMjkxRkYiIHN0cm9rZS13aWR0aD0iMTUiLz4KICA8cGF0aCBkPSJNNDYuMzIgNTMuMTNDNDUuODYgNDguMSA0My40MSA0My42MiAzOS4zMyA0MC41QzM1LjI1IDM3LjM3IDMwLjE1IDM1Ljg2IDI1LjExIDM2LjMyQzIwLjA4IDM2Ljc4IDE1LjYgMzkuMjMgMTIuNDcgNDMuMzFDOS4zNSA0Ny4zOSA3Ljg0IDUyLjQ5IDguMyA1Ny41MkM4Ljc2IDYyLjU1IDExLjIxIDY3LjAzIDE1LjI5IDcwLjE2QzE5LjM3IDczLjI4IDI0LjQ3IDc0Ljc5IDI5LjUgNzQuMzNDMzQuNTQgNzMuODcgMzkuMDIgNzEuNDIgNDIuMTQgNjcuMzRDNDUuMjcgNjMuMjYgNDYuNzggNTguMTYgNDYuMzIgNTMuMTNaIiBmaWxsPSIjMzI5MUZGIi8+Cjwvc3ZnPgo=" alt="CopySnap Logo">
+          <div class="login-title">CopySnap</div>
+          <div class="login-subtitle">Plugin in Offline Mode</div>
+        </div>
+        
+        <div class="intro" style="margin-bottom: 20px; text-align: center;">
+          <p>Figma is blocking network connections to the CopySnap service.</p>
+          <p>Enter your name below to use the plugin with sample data.</p>
+        </div>
+        
+        <div id="loginError" class="error-message"></div>
+        
+        <div class="input-group">
+          <label for="nameInput">Your Name</label>
+          <input type="text" id="nameInput" placeholder="Enter your name" value="Test User">
+        </div>
+        
+        <div class="login-actions">
+          <button id="offlineModeBtn" style="background-color: #4CAF50; width: 100%; padding: 12px; margin-top: 10px; font-size: 16px;">Start Using CopySnap</button>
+        </div>
+        
+        <div class="login-footer">
+          For full functionality with your real account, use the web app at <a href="https://copysnap.io" target="_blank">copysnap.io</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User info bar (shown when logged in) -->
+    <div id="userInfoBar" style="display: none;">
+      <div class="user-info">
+        <div class="user-avatar" id="userInitials">US</div>
+        <div class="user-details">
+          <div class="user-name" id="userName">User Name</div>
+          <div class="user-email" id="userEmail">user@example.com</div>
+        </div>
+        <button id="logoutBtn" class="secondary logout-button">Logout</button>
+      </div>
+    </div>
+    
+    <!-- Main plugin content (will be shown after login) -->
+    <div id="pluginContent" style="display: none;">
+      <div class="intro">
+        <p>Generate context-aware UX copy directly from your designs. Select a frame or component to begin.</p>
+      </div>
+      
+      <button id="generateBtn">Select Frame & Generate Copy</button>
+      
+      <div id="status"></div>
+      
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Analyzing design context...</p>
+      </div>
+      
+      <div id="form-controls" style="display: none;">
+        <div class="form-section">
+          <div class="form-group">
+            <label for="copyType">Copy Type</label>
+            <select id="copyType">
+              <option value="button">Button</option>
+              <option value="header">Header</option>
+              <option value="label">Label</option>
+              <option value="tooltip">Tooltip</option>
+              <option value="error">Error Message</option>
+              <option value="success">Success Message</option>
+              <option value="empty">Empty State</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="copyTone">Tone</label>
+            <select id="copyTone">
+              <option value="professional">Professional</option>
+              <option value="friendly">Friendly</option>
+              <option value="casual">Casual</option>
+              <option value="formal">Formal</option>
+              <option value="technical">Technical</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="additionalContext">
+              Additional Context 
+              <span class="tooltip">?
+                <span class="tooltiptext">Add any specific requirements, brand guidelines, or context that will help generate better copy.</span>
+              </span>
+            </label>
+            <textarea id="additionalContext" placeholder="Add any specific requirements or context information here..."></textarea>
+          </div>
+          
+          <button id="regenerateBtn">Generate Copy</button>
+        </div>
+      </div>
+      
+      <div id="resultsSection">
+        <div class="results-header">
+          <span>Generated Copy Suggestions</span>
+          <button id="backBtn">Back</button>
+        </div>
+        <div class="results-content">
+          <div id="suggestions"></div>
+        </div>
+      </div>
+      
+      <div class="emergency">
+        <button id="emergencyBtn">Debug: Show Examples</button>
+      </div>
+      
+      <footer>
+        <p>CopySnap &copy; 2023 • AI-powered UX copy</p>
+      </footer>
+    </div>
+  </div>
+  
+  <script>
+    // API Constants
+    const OFFLINE_MODE = true; // Plugin will operate in offline mode with mock data
+    const DEBUG_MODE = true; // Set to true to see detailed errors
+    
+    // DOM elements
+    const generateBtn = document.getElementById('generateBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const emergencyBtn = document.getElementById('emergencyBtn');
+    const status = document.getElementById('status');
+    const loading = document.getElementById('loading');
+    const formControls = document.getElementById('form-controls');
+    const resultsSection = document.getElementById('resultsSection');
+    const suggestionsContainer = document.getElementById('suggestions');
+    const regenerateBtn = document.getElementById('regenerateBtn');
+    const backBtn = document.getElementById('backBtn');
+    const copyType = document.getElementById('copyType');
+    const copyTone = document.getElementById('copyTone');
+    const additionalContext = document.getElementById('additionalContext');
+    
+    // Login elements
+    const loginState = document.getElementById('loginState');
+    const pluginContent = document.getElementById('pluginContent');
+    const userInfoBar = document.getElementById('userInfoBar');
+    const offlineModeBtn = document.getElementById('offlineModeBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const nameInput = document.getElementById('nameInput');
+    const loginError = document.getElementById('loginError');
+    const userInitials = document.getElementById('userInitials');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    
+    // Debug element existence
+    console.log('offlineModeBtn found:', !!offlineModeBtn);
+    console.log('loginState found:', !!loginState);
+    console.log('nameInput found:', !!nameInput);
+    
+    // State
+    let selectedNode = null;
+    let authToken = null;
+    let currentUser = null;
+    let isAuthenticated = false;
+    
+    // Log that we've loaded
+    console.log('UI HTML loaded and parsed');
+    
+    function checkAuthState() {
+      // Try to get auth token from local storage
+      authToken = localStorage.getItem('copysnap_auth_token');
+      const userJson = localStorage.getItem('copysnap_user');
+      
+      if (authToken && userJson) {
+        try {
+          currentUser = JSON.parse(userJson);
+          isAuthenticated = true;
+          showAuthenticatedState();
+          console.log('Authentication successful from localStorage:', currentUser);
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+          // If redirect back to login
+          window.location.href = 'simple.html';
+        }
+      } else {
+        // Redirect back to login if not authenticated
+        window.location.href = 'simple.html';
+      }
+    }
+    
+    function showLoginState() {
+      console.log('Showing login state');
+      loginState.style.display = 'block';
+      pluginContent.style.display = 'none';
+      userInfoBar.style.display = 'none';
+    }
+    
+    function showAuthenticatedState() {
+      loginState.style.display = 'none';
+      pluginContent.style.display = 'block';
+      
+      if (currentUser) {
+        // Update user info bar
+        userInfoBar.style.display = 'block';
+        if (currentUser.name) {
+          userName.textContent = currentUser.name;
+          // Set initials from name
+          userInitials.textContent = currentUser.name
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
+        }
+        
+        if (currentUser.email) {
+          userEmail.textContent = currentUser.email;
+          // If no name, use first part of email for initials
+          if (!currentUser.name) {
+            userInitials.textContent = currentUser.email
+              .split('@')[0]
+              .substring(0, 2)
+              .toUpperCase();
+          }
+        }
+      }
+    }
+    
+    // Login event handlers
+    offlineModeBtn.addEventListener('click', function() {
+      console.log('Offline mode button clicked');
+      
+      const name = nameInput.value.trim() || 'Test User';
+      console.log('Using name:', name);
+      
+      // Create test user data
+      authToken = 'test-token-' + Date.now();
+      currentUser = {
+        id: 'test-user',
+        name: name,
+        email: name.toLowerCase().replace(/\s+/g, '.') + '@example.com'
+      };
+      isAuthenticated = true;
+      
+      // Store in local storage
+      localStorage.setItem('copysnap_auth_token', authToken);
+      localStorage.setItem('copysnap_user', JSON.stringify(currentUser));
+      
+      // Show authenticated state
+      showAuthenticatedState();
+      
+      console.log('Entered offline mode with user:', currentUser);
+    });
+    
+    logoutBtn.addEventListener('click', function() {
+      // Clear auth data
+      authToken = null;
+      currentUser = null;
+      isAuthenticated = false;
+      
+      // Remove from storage
+      localStorage.removeItem('copysnap_auth_token');
+      localStorage.removeItem('copysnap_user');
+      
+      // Show login state
+      showLoginState();
+    });
+    
+    function showLoginErrorMessage(message) {
+      loginError.textContent = message;
+      loginError.style.display = 'block';
+    }
+    
+    // API functions have been removed for offline mode
+    
+    async function generateCopyFromAPI(params) {
+      try {
+        if (isAuthenticated) {
+          console.log('Generating copy in offline mode');
+          
+          // Simulate network delay for a more realistic experience
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          // Always return mock data in offline mode
+          return getMockGenerationResponse(params);
+        } else {
+          // This part should never be reached with required authentication
+          console.error('Attempted to generate copy without authentication');
+          return { 
+            success: false, 
+            message: 'Authentication required to generate copy' 
+          };
+        }
+      } catch (error) {
+        console.error('API error:', error);
+        return { 
+          success: false, 
+          message: 'Error generating copy. Please try again.' 
+        };
+      }
+    }
+    
+    // Function to provide mock generation responses for testing
+    function getMockGenerationResponse(params) {
+      const { type, tone } = params;
+      
+      return {
+        success: true,
+        suggestions: [
+          `${type.charAt(0).toUpperCase() + type.slice(1)} copy in a ${tone} tone: "${getExampleCopy(type, tone, 1)}"`,
+          `${type.charAt(0).toUpperCase() + type.slice(1)} copy in a ${tone} tone: "${getExampleCopy(type, tone, 2)}"`,
+          `${type.charAt(0).toUpperCase() + type.slice(1)} copy in a ${tone} tone: "${getExampleCopy(type, tone, 3)}"`
+        ]
+      };
+    }
+    
+    // Generate button listener
+    generateBtn.addEventListener('click', function() {
+      console.log('Generate button clicked');
+      showLoading();
+      
+      // Send message to the plugin
+      parent.postMessage({
+        pluginMessage: { type: 'generate-copy' }
+      }, '*');
+    });
+    
+    // Regenerate button listener
+    regenerateBtn.addEventListener('click', function() {
+      console.log('Regenerate button clicked');
+      showLoading();
+      
+      setTimeout(function() {
+        generateSuggestions();
+      }, 1000);
+    });
+    
+    // Back button listener
+    backBtn.addEventListener('click', function() {
+      console.log('Back button clicked');
+      resultsSection.style.display = 'none';
+      formControls.style.display = 'block';
+    });
+    
+    // Close button listener
+    closeBtn.addEventListener('click', function() {
+      console.log('Close button clicked');
+      parent.postMessage({
+        pluginMessage: { type: 'close' }
+      }, '*');
+    });
+    
+    // Emergency button listener
+    emergencyBtn.addEventListener('click', function() {
+      console.log('Emergency button clicked');
+      showExampleSuggestions();
+    });
+    
+    // Show loading state
+    function showLoading() {
+      status.style.display = 'none';
+      loading.style.display = 'flex';
+      formControls.style.display = 'none';
+      resultsSection.style.display = 'none';
+    }
+    
+    // Hide loading state
+    function hideLoading() {
+      loading.style.display = 'none';
+    }
+    
+    // Show status message
+    function showStatus(message, type = 'info') {
+      status.innerHTML = message;
+      status.className = '';
+      status.classList.add(type);
+      status.style.display = 'block';
+    }
+    
+    // Function to show example suggestions
+    function showExampleSuggestions() {
+      hideLoading();
+      formControls.style.display = 'block';
+      generateSuggestions();
+    }
+    
+    // Generate suggestions based on form input
+    async function generateSuggestions() {
+      const type = copyType.value;
+      const tone = copyTone.value;
+      const context = additionalContext.value;
+      
+      console.log('Generating suggestions:', { type, tone, context });
+      
+      // Call API with auth token if available
+      const result = await generateCopyFromAPI({
+        type,
+        tone,
+        context,
+        selectedNode
+      });
+      
+      // Hide loading
+      hideLoading();
+      
+      if (result.success) {
+        // Display the suggestions
+        displaySuggestions(result.suggestions, type);
+      } else {
+        showStatus(`Error: ${result.message || 'Failed to generate copy'}`, 'error');
+      }
+    }
+    
+    // Get example copy based on type and tone
+    function getExampleCopy(type, tone, variant) {
+      const examples = {
+        button: {
+          professional: ["Complete Purchase", "Proceed to Checkout", "Confirm Order"],
+          friendly: ["Let's Go!", "Take Me There", "Yes, Please!"],
+          casual: ["I'm In", "Let's Do This", "Count Me In"],
+          formal: ["Proceed with Transaction", "Finalize Process", "Submit Request"],
+          technical: ["Submit Query", "Execute Command", "Process Request"]
+        },
+        header: {
+          professional: ["Product Features", "Company Overview", "Service Options"],
+          friendly: ["Welcome Back!", "Here's What's New", "Let's Get Started"],
+          casual: ["Check This Out", "What's Happening", "The Scoop"],
+          formal: ["Introduction to Services", "Official Announcement", "Information Disclosure"],
+          technical: ["System Architecture", "Technical Specifications", "Implementation Details"]
+        }
+      };
+      
+      // Default examples for types not explicitly defined
+      const defaultExamples = {
+        professional: ["Confirm Selection", "View Details", "Continue"],
+        friendly: ["Let's Go!", "Check It Out", "Sounds Good"],
+        casual: ["Got It", "Cool", "Alright"],
+        formal: ["Proceed", "Acknowledge", "Affirm"],
+        technical: ["Execute", "Process", "Initialize"]
+      };
+      
+      // Get the appropriate example set or fall back to default
+      const exampleSet = examples[type] ? examples[type][tone] : defaultExamples[tone];
+      
+      // Return the variant or the first example if variant doesn't exist
+      return exampleSet ? (exampleSet[variant - 1] || exampleSet[0]) : defaultExamples[tone][0];
+    }
+    
+    // Function to display suggestions in the UI
+    function displaySuggestions(suggestions, type) {
+      console.log('Displaying suggestions:', suggestions);
+      
+      // Clear existing suggestions
+      suggestionsContainer.innerHTML = '';
+      
+      if (suggestions.length === 0) {
+        suggestionsContainer.innerHTML = '<div class="suggestions-empty">No suggestions available. Try changing your parameters.</div>';
+      } else {
+        // Add each suggestion
+        suggestions.forEach(function(text, index) {
+          const div = document.createElement('div');
+          div.className = 'suggestion';
+          
+          // Extract the actual copy text
+          const copyText = text.split('"')[1] || text;
+          
+          // Create badge for the type
+          const badge = document.createElement('div');
+          badge.className = 'copy-type-badge';
+          badge.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+          div.appendChild(badge);
+          
+          // Create suggestion text
+          const textElem = document.createElement('div');
+          textElem.className = 'suggestion-text';
+          textElem.textContent = text;
+          div.appendChild(textElem);
+          
+          // Create actions container
+          const actions = document.createElement('div');
+          actions.className = 'suggestion-actions';
+          
+          // Create use button
+          const useButton = document.createElement('button');
+          useButton.textContent = 'Use This';
+          useButton.addEventListener('click', function() {
+            console.log('Use button clicked for:', copyText);
+            
+            try {
+              // Copy to clipboard
+              navigator.clipboard.writeText(copyText)
+                .then(() => {
+                  showStatus(`"${copyText}" copied to clipboard!`, 'success');
+                })
+                .catch(err => {
+                  console.error('Could not copy text: ', err);
+                  alert('Selected: ' + copyText);
+                });
+            } catch (err) {
+              console.error('Clipboard API not available: ', err);
+              alert('Selected: ' + copyText);
+            }
+          });
+          actions.appendChild(useButton);
+          
+          div.appendChild(actions);
+          
+          // Add to container
+          suggestionsContainer.appendChild(div);
+        });
+      }
+      
+      // Show the results section
+      formControls.style.display = 'none';
+      resultsSection.style.display = 'block';
+    }
+    
+    // Handle messages from the plugin
+    window.onmessage = function(event) {
+      const message = event.data.pluginMessage;
+      console.log('Message received from plugin:', message);
+      
+      if (!message) return;
+      
+      switch (message.type) {
+        case 'selection-data':
+          // Update selected node
+          selectedNode = message.data;
+          
+          // Hide loading
+          hideLoading();
+          
+          // Show form controls
+          formControls.style.display = 'block';
+          
+          // Update status
+          showStatus(`<strong>Selected:</strong> ${message.data.name} (${message.data.type})`, 'success');
+          break;
+          
+        case 'error':
+          // Hide loading
+          hideLoading();
+          
+          // Show error
+          showStatus(`<strong>Error:</strong> ${message.message}`, 'error');
+          
+          // Hide results if there's an error
+          resultsSection.style.display = 'none';
+          break;
+      }
+    };
+    
+    // Initialize UI state
+    window.onload = function() {
+      console.log('Window loaded - initializing UI state');
+      
+      // Add immediate UI update to show login state while checking auth
+      loginState.style.display = 'block';
+      pluginContent.style.display = 'none';
+      
+      // Check auth after DOM is fully loaded
+      setTimeout(function() {
+        console.log('Running checkAuthState after timeout');
+        checkAuthState();
+      }, 100);
+    };
+  </script>
+</body>
+</html> 

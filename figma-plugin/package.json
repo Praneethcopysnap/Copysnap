@@ -1,0 +1,33 @@
+{
+  "name": "copysnap-figma-plugin",
+  "version": "1.0.0",
+  "description": "CopySnap - Generate context-aware UX copy from your Figma designs",
+  "main": "dist/code.js",
+  "scripts": {
+    "build": "webpack --mode=production",
+    "dev": "webpack --mode=development --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "figma",
+    "plugin",
+    "ux",
+    "copy",
+    "copywriting",
+    "ai"
+  ],
+  "author": "CopySnap",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.74.0",
+    "copy-webpack-plugin": "^13.0.0",
+    "css-loader": "^6.8.1",
+    "html-webpack-plugin": "^5.5.3",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.2.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
