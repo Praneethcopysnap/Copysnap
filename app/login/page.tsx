@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/app/components/ui/button'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
-import AuthSidePanel from '@/app/components/AuthSidePanel'
+import AuthSidePanel from '../components/AuthSidePanel'
 
 export default function Login() {
   const [email, setEmail] = useState('')
