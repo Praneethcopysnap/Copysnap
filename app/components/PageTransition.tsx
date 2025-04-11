@@ -2,8 +2,9 @@
 
 import { motion } from 'framer-motion';
 
-// Define the props without relying on ReactNode type
+// Define the props with a generic type
 interface PageTransitionProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   children: any;
 }
 
