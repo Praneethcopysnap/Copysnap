@@ -12,6 +12,7 @@ export interface Database {
       profiles: {
         Row: {
           id: string
+          email: string | null
           full_name: string | null
           company: string | null
           job_title: string | null
@@ -23,6 +24,7 @@ export interface Database {
         }
         Insert: {
           id: string
+          email?: string | null
           full_name?: string | null
           company?: string | null
           job_title?: string | null
@@ -34,6 +36,7 @@ export interface Database {
         }
         Update: {
           id?: string
+          email?: string | null
           full_name?: string | null
           company?: string | null
           job_title?: string | null
@@ -52,6 +55,7 @@ export interface Database {
           owner_id: string
           created_at: string
           updated_at: string
+          copy_count: number
         }
         Insert: {
           id?: string
@@ -60,6 +64,7 @@ export interface Database {
           owner_id: string
           created_at?: string
           updated_at?: string
+          copy_count?: number
         }
         Update: {
           id?: string
@@ -68,128 +73,107 @@ export interface Database {
           owner_id?: string
           created_at?: string
           updated_at?: string
+          copy_count?: number
         }
       }
-      workspace_members: {
-        Row: {
-          workspace_id: string
-          user_id: string
-          role: 'owner' | 'admin' | 'member'
-          created_at: string
-        }
-        Insert: {
-          workspace_id: string
-          user_id: string
-          role?: 'owner' | 'admin' | 'member'
-          created_at?: string
-        }
-        Update: {
-          workspace_id?: string
-          user_id?: string
-          role?: 'owner' | 'admin' | 'member'
-          created_at?: string
-        }
-      }
-      copy_entries: {
+      copy_generations: {
         Row: {
           id: string
-          workspace_id: string
-          name: string
-          content: string
+          user_id: string
+          workspace_id: string | null
+          type: string
+          tone: string
           context: string | null
-          created_by: string
-          created_at: string
-          updated_at: string
+          element_name: string | null
+          element_type: string | null
+          suggestions: string[]
+          timestamp: string
         }
         Insert: {
           id?: string
-          workspace_id: string
-          name: string
-          content: string
+          user_id: string
+          workspace_id?: string | null
+          type: string
+          tone: string
           context?: string | null
-          created_by: string
-          created_at?: string
-          updated_at?: string
+          element_name?: string | null
+          element_type?: string | null
+          suggestions: string[]
+          timestamp?: string
         }
         Update: {
           id?: string
-          workspace_id?: string
-          name?: string
-          content?: string
+          user_id?: string
+          workspace_id?: string | null
+          type?: string
+          tone?: string
           context?: string | null
-          created_by?: string
-          created_at?: string
-          updated_at?: string
+          element_name?: string | null
+          element_type?: string | null
+          suggestions?: string[]
+          timestamp?: string
         }
       }
-      brand_settings: {
-        Row: {
-          workspace_id: string
-          tone: string | null
-          style: string | null
-          guidelines: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          workspace_id: string
-          tone?: string | null
-          style?: string | null
-          guidelines?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          workspace_id?: string
-          tone?: string | null
-          style?: string | null
-          guidelines?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      api_keys: {
+      brand_voice: {
         Row: {
           id: string
-          workspace_id: string
-          name: string
-          key_hash: string
-          created_by: string
+          user_id: string
+          custom_rules: string | null
+          examples: string | null
           created_at: string
-          expires_at: string | null
-          last_used_at: string | null
+          updated_at: string
         }
         Insert: {
           id?: string
-          workspace_id: string
-          name: string
-          key_hash: string
-          created_by: string
+          user_id: string
+          custom_rules?: string | null
+          examples?: string | null
           created_at?: string
-          expires_at?: string | null
-          last_used_at?: string | null
+          updated_at?: string
         }
         Update: {
           id?: string
-          workspace_id?: string
-          name?: string
-          key_hash?: string
-          created_by?: string
+          user_id?: string
+          custom_rules?: string | null
+          examples?: string | null
           created_at?: string
-          expires_at?: string | null
-          last_used_at?: string | null
+          updated_at?: string
         }
       }
-    }
-    Views: {
-      [_ in never]: never
+      copy_history: {
+        Row: {
+          id: string
+          user_id: string
+          workspace_id: string
+          type: string
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          workspace_id: string
+          type: string
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          workspace_id?: string
+          type?: string
+          content?: string
+          created_at?: string
+        }
+      }
     }
     Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      user_role: 'owner' | 'admin' | 'member'
-      workspace_role: 'owner' | 'admin' | 'member'
+      increment: {
+        Args: {
+          x: number
+        }
+        Returns: number
+      }
     }
   }
 } 

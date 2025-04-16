@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Noto_Sans } from 'next/font/google'
 import React from 'react'
 import { WorkspacesProvider } from './context/workspaces'
+import { Analytics } from '@vercel/analytics/react'
 
 const notoSans = Noto_Sans({ 
   subsets: ['latin'],
@@ -25,6 +26,7 @@ export default function RootLayout({
         <WorkspacesProvider>
           {children}
         </WorkspacesProvider>
+        <Analytics />
       </body>
     </html>
   )

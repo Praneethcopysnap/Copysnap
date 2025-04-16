@@ -81,3 +81,8 @@ declare module 'app/components/Admin_UserTable' {
   const Admin_UserTable: any;
   export default Admin_UserTable;
 }
+
+declare module 'app/components/SidebarNavigation' {
+  const SidebarNavigation: any;
+  export default SidebarNavigation;
+}

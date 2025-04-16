@@ -47,7 +47,7 @@ export default function ProfileSettingsPage() {
           });
           
           // Check for missing fields
-          const missing = [];
+          const missing: string[] = [];
           if (!profile.full_name) missing.push('name');
           if (!profile.company) missing.push('company');
           if (!profile.job_title) missing.push('job title');
@@ -80,7 +80,7 @@ export default function ProfileSettingsPage() {
       setIsEditing(false);
       
       // Update missing fields list after successful save
-      const missing = [];
+      const missing: string[] = [];
       if (!formData.full_name) missing.push('name');
       if (!formData.company) missing.push('company');
       if (!formData.job_title) missing.push('job title');

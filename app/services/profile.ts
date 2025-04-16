@@ -1,5 +1,4 @@
 import { supabase } from '@/app/lib/supabase'
-import { Database } from '@/types/supabase'
 
 export type Profile = {
   id: string

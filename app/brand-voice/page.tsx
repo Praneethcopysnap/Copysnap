@@ -1,8 +1,10 @@
+'use client';
+
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import SiteHeader from "../components/SiteHeader"
-import DashboardSidebar from '../components/Dashboard_Sidebar'
-import BrandVoiceForm from '../components/Brand_VoiceForm'
+import SidebarNavigation from '../components/SidebarNav'
+import BrandVoiceSettings from '../components/BrandVoiceSettings'
 
 export default function BrandVoicePage() {
   return (
@@ -10,7 +12,7 @@ export default function BrandVoicePage() {
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <DashboardSidebar />
+        <SidebarNavigation />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full pl-6 pr-6">
@@ -19,7 +21,7 @@ export default function BrandVoicePage() {
               <p className="text-gray-600">Define how your product communicates with users.</p>
             </div>
             
-            <BrandVoiceForm />
+            <BrandVoiceSettings />
           </div>
         </main>
       </div>

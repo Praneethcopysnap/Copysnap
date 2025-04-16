@@ -1,6 +1,5 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 
 export function SignOutButton() {
   const router = useRouter()
@@ -23,12 +22,11 @@ export function SignOutButton() {
   }
 
   return (
-    <Button
-      variant="ghost"
+    <button
       onClick={handleSignOut}
-      className="w-full justify-start"
+      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
     >
       Sign out
-    </Button>
+    </button>
   )
 } 

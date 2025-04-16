@@ -5,4 +5,5 @@ export interface Workspace {
   lastEdited: string;
   members: number;
   dateCreated?: string;
+  copyCount?: number;
 } 

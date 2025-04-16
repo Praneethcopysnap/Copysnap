@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import type { MouseEvent } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import SiteHeader from "@/app/components/SiteHeader"
-import DashboardSidebar from "@/app/components/Dashboard_Sidebar"
+import SidebarNavigation from "@/app/components/SidebarNav"
 import { useWorkspaces } from '../../context/workspaces'
 import { FiArrowLeft, FiPlus } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -31,7 +31,7 @@ export default function WorkspacePage() {
         <SiteHeader isLoggedIn={true} />
         
         <div className="fixed-layout">
-          <DashboardSidebar />
+          <SidebarNavigation />
           
           <main className="flex-grow overflow-y-auto">
             <motion.div 
@@ -102,7 +102,7 @@ export default function WorkspacePage() {
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <DashboardSidebar />
+        <SidebarNavigation />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full">

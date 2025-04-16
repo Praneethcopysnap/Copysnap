@@ -106,4 +106,10 @@ export async function GET(
       { status: 500, headers: corsHeaders }
     );
   }
-} 
+}
+
+const API_CONFIG = {
+  baseUrl: 'https://www.copysnap.in/api',
+  useApi: true,
+  timeout: 8000
+}; 

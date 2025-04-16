@@ -3,8 +3,9 @@
 import React from 'react'
 import Link from 'next/link'
 import { useWorkspaces } from '../context/workspaces'
+import { Workspace } from '../types/workspace'
 
-export default function Workspace_List() {
+const WorkspaceList = () => {
   const { workspaces } = useWorkspaces();
   
   // Show only most recent 3 workspaces
@@ -12,7 +13,7 @@ export default function Workspace_List() {
   
   return (
     <div className="space-y-4">
-      {recentWorkspaces.map(workspace => (
+      {recentWorkspaces.map((workspace: Workspace) => (
         <Link 
           key={workspace.id}
           href={`/workspaces/${workspace.id}`}
@@ -33,4 +34,6 @@ export default function Workspace_List() {
       </Link>
     </div>
   )
-} 
+}
+
+export default WorkspaceList; 

@@ -5,7 +5,7 @@ import * as React from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import SiteHeader from "../components/SiteHeader"
-import DashboardSidebar from '../components/Dashboard_Sidebar'
+import SidebarNavigation from '../components/SidebarNav'
 
 // FAQ data
 const faqs = [
@@ -95,7 +95,7 @@ export default function HelpPage() {
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <DashboardSidebar />
+        <SidebarNavigation />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full p-6">

@@ -1,6 +1,12 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
+
+// Initialize OpenAI client if API key is available
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 // CORS headers for Figma plugin
 const corsHeaders = {
@@ -52,26 +58,145 @@ export async function POST(request: Request) {
       elementType,
       elementData 
     } = await request.json();
+
+    // Validate required fields
+    if (!type || !tone) {
+      return NextResponse.json(
+        { error: 'Missing required fields: type and tone are required' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
     
-    // For now, generate mock copy suggestions
-    // In a real implementation, you would call your AI service here
-    const suggestions = generateMockSuggestions(type, tone, 3);
+    // Fetch the user's brand voice settings
+    const { data: brandVoice, error: brandVoiceError } = await supabase
+      .from('brand_voice')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
     
-    // Log the copy generation for analytics
-    await supabase.from('copy_generations').insert({
-      user_id: user.id,
-      workspace_id: workspaceId,
-      type,
-      tone,
-      context: context || null,
-      element_name: elementName || null,
-      element_type: elementType || null,
-      timestamp: new Date().toISOString()
-    });
+    if (brandVoiceError && brandVoiceError.code !== 'PGRST116') {
+      console.error('Error fetching brand voice:', brandVoiceError);
+    }
+    
+    // Generate suggestions based on the user's input and brand voice
+    let suggestions: string[] = [];
+    
+    if (openai) {
+      try {
+        // Build prompt based on context, element data, and brand voice
+        let prompt = `Generate ${type === 'button' ? '3' : '2'} options for ${type} text in a ${tone} tone`;
+        
+        if (elementName) {
+          prompt += ` for a UI element named "${elementName}"`;
+        }
+        
+        if (context) {
+          prompt += `. Context: ${context}`;
+        }
+        
+        if (brandVoice) {
+          if (brandVoice.custom_rules) {
+            prompt += `. Follow these rules: ${brandVoice.custom_rules}`;
+          }
+          
+          if (brandVoice.examples) {
+            prompt += `. Reference these examples of the brand voice: ${brandVoice.examples}`;
+          }
+        }
+        
+        if (elementData && Object.keys(elementData).length > 0) {
+          prompt += `. Element data: ${JSON.stringify(elementData)}`;
+        }
+        
+        // Call OpenAI
+        const response = await openai.chat.completions.create({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a professional UX writer. Generate concise, effective copy for product interfaces.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 200,
+          n: 1
+        });
+        
+        // Parse the response to extract suggestions
+        if (response.choices?.[0]?.message?.content) {
+          const content = response.choices[0].message.content;
+          // Split into separate suggestions (assumes numbered list or similar)
+          suggestions = content
+            .split(/\d+\.\s+/)
+            .filter(s => s.trim())
+            .map(s => s.trim().replace(/^["']|["']$/g, ''));
+        }
+      } catch (aiError) {
+        console.error('OpenAI API error:', aiError);
+        // Fall back to mock suggestions if OpenAI fails
+        suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
+      }
+    } else {
+      // Use mock suggestions if OpenAI is not available
+      suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
+    }
+    
+    // Default to mock suggestions if none were generated
+    if (!suggestions || suggestions.length === 0) {
+      suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
+    }
+    
+    // Store the generation in the database
+    const { data: copyGeneration, error: saveError } = await supabase
+      .from('copy_generations')
+      .insert({
+        user_id: user.id,
+        workspace_id: workspaceId,
+        type,
+        tone,
+        context: context || null,
+        element_name: elementName || null,
+        element_type: elementType || null,
+        suggestions: suggestions,
+        timestamp: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (saveError) {
+      console.error('Error saving copy generation:', saveError);
+    } else {
+      // Increment the workspace copy count
+      await supabase
+        .from('workspaces')
+        .update({ 
+          copy_count: supabase.rpc('increment', { x: 1 }),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', workspaceId);
+    }
+    
+    // Add to copy history if the workspace exists
+    if (workspaceId) {
+      // Create a summary of the generation for history
+      const historySummary = `${type.charAt(0).toUpperCase() + type.slice(1)} for ${elementName || elementType || 'UI element'}`;
+      
+      await supabase.from('copy_history').insert({
+        user_id: user.id,
+        workspace_id: workspaceId,
+        type: type,
+        content: historySummary,
+      });
+    }
     
     // Return the suggestions
     return NextResponse.json({ 
       suggestions,
+      generationId: copyGeneration?.id || null,
       success: true
     }, { headers: corsHeaders });
     

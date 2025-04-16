@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react'
-import BrandVoiceForm from '../../components/Brand_VoiceForm'
+import BrandVoiceSettings from '../../components/BrandVoiceSettings'
 import SettingsPageLayout from '../../components/SettingsPageLayout'
 
 export default function BrandVoicePage() {
@@ -10,7 +10,7 @@ export default function BrandVoicePage() {
       title="Brand Voice Settings"
       description="Define how your product communicates with users."
     >
-      <BrandVoiceForm />
+      <BrandVoiceSettings />
     </SettingsPageLayout>
   )
 } 
