@@ -22,12 +22,12 @@ export default function WorkspaceModal({
 }: WorkspaceModalProps) {
   const [formData, setFormData] = useState(initialData);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: { target: { name: string; value: string } }) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       alert('Please enter a workspace name');
