@@ -29,6 +29,9 @@ export const metadata = {
     ],
   },
   manifest: '/site.webmanifest',
+}
+
+export const viewport = {
   themeColor: '#3B82F6',
 }
 
