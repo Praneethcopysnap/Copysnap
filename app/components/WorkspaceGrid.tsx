@@ -1,12 +1,10 @@
 'use client';
 
-import React from 'react'
-import Link from 'next/link'
-import { Workspace } from '../types/workspace'
-import { motion } from 'framer-motion'
-import WorkspaceMenu from './WorkspaceMenu';
-import { FiClock, FiCalendar, FiFileText, FiArchive, FiEdit, FiLayout, FiPlus } from 'react-icons/fi';
-import { formatDistanceToNow } from 'date-fns';
+import React from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Workspace } from '../types/workspace';
+import { FiFileText, FiArchive, FiEdit, FiLayout, FiPlus, FiClock } from 'react-icons/fi';
 
 interface WorkspaceGridProps {
   workspaces: Workspace[];
@@ -39,7 +37,12 @@ const defaultColorScheme: ColorScheme = {
 
 // Get a random icon for the workspace
 const getWorkspaceIcon = (id: string) => {
-  const icons = [<FiFileText size={18} />, <FiLayout size={18} />, <FiEdit size={18} />, <FiArchive size={18} />];
+  const icons = [
+    <FiFileText key="file-text" size={18} />, 
+    <FiLayout key="layout" size={18} />, 
+    <FiEdit key="edit" size={18} />, 
+    <FiArchive key="archive" size={18} />
+  ];
   // Use the last character of the id to determine the icon
   const lastChar = id.slice(-1);
   const index = parseInt(lastChar, 16) % icons.length;
@@ -54,22 +57,6 @@ const getWorkspaceColor = (id: string): ColorScheme => {
   const firstChar = id.slice(0, 1);
   const index = parseInt(firstChar, 16) % colorPairs.length;
   return colorPairs[index] || defaultColorScheme;
-};
-
-// Format date for display
-const formatDate = (dateString?: string) => {
-  if (!dateString) return 'Unknown date';
-  
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  } catch (error) {
-    return dateString;
-  }
 };
 
 // Main component
@@ -96,12 +83,12 @@ const WorkspaceGrid = ({ workspaces, onCreateWorkspace, loading = false }: Works
       }
     }
   };
-
+  
   const item = {
     hidden: { y: 20, opacity: 0 },
     show: { y: 0, opacity: 1 }
   };
-
+  
   return (
     <motion.div 
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
@@ -175,7 +162,7 @@ const WorkspaceGrid = ({ workspaces, onCreateWorkspace, loading = false }: Works
         );
       })}
     </motion.div>
-  )
-}
+  );
+};
 
 export default WorkspaceGrid; 
