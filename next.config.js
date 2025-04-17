@@ -18,10 +18,10 @@ const nextConfig = {
   // Disable static optimization to fix build errors
   experimental: {
     // This will disable the static HTML export
-    appDocumentPreloading: false,
-    // Skip the static generation for pages with client components
-    output: 'standalone'
-  }
+    appDocumentPreloading: false
+  },
+  // Set output mode to standalone
+  output: 'standalone'
 }
 
 module.exports = nextConfig 
