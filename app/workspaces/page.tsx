@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, Suspense, lazy } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import SiteHeader from '../components/SiteHeader'
-// Lazy load sidebar
-const SidebarNav = lazy(() => import('../components/SidebarNav'))
-// Lazy load workspace grid
-const WorkspaceGrid = lazy(() => import('../components/WorkspaceGrid'))
+import SidebarNav from '../components/SidebarNav'
+import WorkspaceGrid from '../components/WorkspaceGrid'
 import { useWorkspaces } from '../context/workspaces'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,11 +12,15 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 // Import workspace type
 import { Workspace } from '../types/workspace'
+import { getWorkspaces, addWorkspace } from '../services/workspace'
+import { getSession } from '../services/auth'
+import WorkspaceSidePanel from '../components/WorkspaceSidePanel'
 
 // Create a simple loading fallback
 const LoadingFallback = () => (
-  <div className="flex justify-center items-center p-6 h-full">
-    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+  <div className="flex justify-center items-center h-screen w-full">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    <p className="ml-2 text-gray-700">Loading...</p>
   </div>
 );
 
@@ -34,6 +36,12 @@ interface Toast {
 interface FormData {
   name: string;
   description: string;
+  figma_link?: string;
+  brand_voice_file?: string;
+  tone?: string;
+  style?: string;
+  voice?: string;
+  persona_description?: string;
 }
 
 interface FilterOption {
@@ -50,14 +58,13 @@ interface ExtendedWorkspace extends Workspace {
 export default function WorkspacesPage() {
   const { workspaces, loading: workspacesLoading, error: workspacesError, addWorkspace, refreshWorkspaces } = useWorkspaces();
   const router = useRouter();
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState<FormData>({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toasts, setToasts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -92,27 +99,17 @@ export default function WorkspacesPage() {
         }, 5000); // 5 second timeout
         
         // Check if user is authenticated
-        const { data, error } = await supabase.auth.getSession();
+        const session = await getSession();
         
         // Clear the timeout since we got a response
         clearTimeout(authTimeout);
         
         if (!mounted) return;
         
-        if (error) {
-          console.error('Auth error:', error);
-          setError('Authentication failed. Please try logging in again.');
-          setLoading(false);
-          setAuthChecked(true);
-          
-          // Redirect to login after a brief delay to show the error
-          setTimeout(() => {
-            if (mounted) router.push('/login');
-          }, 2000);
-          return;
-        }
-        
-        if (!data.session) {
+        if (session) {
+          setIsAuthenticated(true);
+          await fetchWorkspaces();
+        } else {
           console.log('No active session');
           setError('No active session. Please log in.');
           setLoading(false);
@@ -124,12 +121,6 @@ export default function WorkspacesPage() {
           }, 2000);
           return;
         }
-        
-        // User is authenticated
-        setIsAuthenticated(true);
-        
-        // Fetch workspaces
-        await refreshWorkspaces(true); // Force refresh to ensure we have the latest data
         
         if (mounted) {
           setAuthChecked(true);
@@ -161,6 +152,25 @@ export default function WorkspacesPage() {
     };
   }, [router, supabase.auth, refreshWorkspaces, workspacesLoading]);
   
+  const fetchWorkspaces = async () => {
+    try {
+      const fetchedWorkspaces = await getWorkspaces();
+      await refreshWorkspaces(true); // Force refresh to ensure we have the latest data
+    } catch (error) {
+      console.error('Error fetching workspaces:', error);
+      
+      // Check if it's an auth error
+      if (error instanceof Error && error.message.includes('auth')) {
+        setIsAuthenticated(false);
+        router.push('/login');
+      } else {
+        setError('Failed to load workspaces. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // Filter options
   const filterOptions: FilterOption[] = [
     { value: 'all', label: 'All Workspaces' },
@@ -174,8 +184,8 @@ export default function WorkspacesPage() {
     setFormData((prev: FormData) => ({ ...prev, [name]: value }));
   };
   
-  const handleCreateWorkspace = async () => {
-    if (!formData.name.trim()) {
+  const handleCreateWorkspace = async (workspaceData: FormData) => {
+    if (!workspaceData.name.trim()) {
       showToast('Please enter a workspace name', 'error');
       return;
     }
@@ -183,10 +193,10 @@ export default function WorkspacesPage() {
     setIsSubmitting(true);
     
     try {
-      console.log('Attempting to create workspace:', formData);
-      const newWorkspace = await addWorkspace(formData.name, formData.description);
+      console.log('Attempting to create workspace:', workspaceData);
+      const newWorkspace = await addWorkspace(workspaceData.name, workspaceData.description);
       console.log('Workspace created successfully:', newWorkspace);
-      setShowCreateModal(false);
+      setShowCreatePanel(false);
       setFormData({ name: '', description: '' });
       
       // Show success toast
@@ -262,11 +272,11 @@ export default function WorkspacesPage() {
       }
     });
 
-  // Close modal with escape key
+  // Close panel with escape key
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setShowCreateModal(false);
+        setShowCreatePanel(false);
       }
     };
 
@@ -346,7 +356,7 @@ export default function WorkspacesPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="btn-primary flex items-center justify-center gap-2"
-                onClick={() => setShowCreateModal(true)}
+                onClick={() => setShowCreatePanel(true)}
               >
                 <Plus size={18} />
                 <span>Create New Workspace</span>
@@ -369,6 +379,7 @@ export default function WorkspacesPage() {
                     <button 
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                       onClick={() => setSearchQuery('')}
+                      aria-label="Clear search"
                     >
                       <X size={16} />
                     </button>
@@ -376,231 +387,80 @@ export default function WorkspacesPage() {
                 </div>
                 
                 <div className="relative">
-                  <button 
-                    className="btn-secondary flex items-center gap-2"
-                    onClick={() => setShowFilters(!showFilters)}
-                  >
-                    <Filter size={18} />
-                    <span>Filter</span>
-                  </button>
-                  
-                  {showFilters && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      className="absolute right-0 top-12 z-10 bg-white rounded-md shadow-lg p-2 min-w-48 border"
+                  <div className="flex items-center space-x-2">
+                    <Filter size={18} className="text-gray-500" />
+                    <select
+                      className="input pr-10 appearance-none bg-white"
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
                     >
-                      {filterOptions.map(option => (
-                        <button
-                          key={option.value}
-                          className={`w-full text-left px-3 py-2 rounded hover:bg-gray-100 ${
-                            filter === option.value ? 'bg-primary/10 text-primary font-medium' : ''
-                          }`}
-                          onClick={() => {
-                            setFilter(option.value);
-                            setShowFilters(false);
-                          }}
-                        >
+                      {filterOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
                           {option.label}
-                        </button>
+                        </option>
                       ))}
-                    </motion.div>
-                  )}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {/* Active filters display */}
-              {filter !== 'all' && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-3 flex"
-                >
-                  <span className="text-sm text-gray-500 mr-2">Active filter:</span>
-                  <span className="bg-primary/10 text-primary text-sm rounded-full px-3 py-1 flex items-center">
-                    {filterOptions.find(o => o.value === filter)?.label}
-                    <button 
-                      className="ml-2 hover:text-primary-dark" 
-                      onClick={() => setFilter('all')}
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
-                </motion.div>
-              )}
             </div>
             
-            {/* Main content */}
-            {loading || workspacesLoading ? (
-              <div className="flex justify-center items-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
-                <div className="flex">
-                  <AlertCircle className="h-5 w-5 mr-2" />
-                  <div>
-                    <h3 className="text-lg font-medium">Error loading workspaces</h3>
-                    <p>{error}</p>
-                    <button 
-                      className="mt-2 text-sm underline hover:text-red-800"
-                      onClick={() => {
-                        setError(null);
-                        refreshWorkspaces(true);
-                      }}
-                    >
-                      Retry
-                    </button>
+            {/* Workspace grid */}
+            <WorkspaceGrid 
+              workspaces={filteredWorkspaces}
+              onCreateWorkspace={() => setShowCreatePanel(true)}
+              loading={loading}
+            />
+            
+            {/* No workspaces message */}
+            {filteredWorkspaces.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <div className="text-gray-400 mb-2">
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
+                    <Plus size={30} className="text-gray-400" />
                   </div>
                 </div>
+                <h3 className="text-lg font-medium mb-1">No workspaces yet</h3>
+                <p className="text-gray-500 mb-4">Create your first workspace to get started!</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => setShowCreatePanel(true)}
+                >
+                  Create Workspace
+                </button>
               </div>
-            ) : filteredWorkspaces.length === 0 ? (
-              <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200">
-                {searchQuery ? (
-                  <div>
-                    <div className="text-gray-400 mb-2">
-                      <Search size={40} className="mx-auto mb-2" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-1">No workspaces found</h3>
-                    <p className="text-gray-500 mb-4">No workspaces match your search query "{searchQuery}"</p>
-                    <button 
-                      className="btn-secondary"
-                      onClick={() => setSearchQuery('')}
-                    >
-                      Clear Search
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-gray-400 mb-2">
-                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
-                        <Plus size={30} className="text-gray-400" />
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium mb-1">No workspaces yet</h3>
-                    <p className="text-gray-500 mb-4">Create your first workspace to get started</p>
-                    <button 
-                      className="btn-primary"
-                      onClick={() => setShowCreateModal(true)}
-                    >
-                      Create Workspace
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Suspense fallback={<LoadingFallback />}>
-                <WorkspaceGrid 
-                  workspaces={filteredWorkspaces} 
-                  onCreateWorkspace={() => setShowCreateModal(true)} 
-                />
-              </Suspense>
             )}
             
-            {/* Create workspace modal */}
-            <AnimatePresence>
-              {showCreateModal && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-                  onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                      setShowCreateModal(false);
-                    }
-                  }}
+            {/* Error message */}
+            {workspacesError && (
+              <div className="text-center py-8">
+                <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-3" />
+                <h3 className="text-lg font-medium text-gray-700">Error Loading Workspaces</h3>
+                <p className="text-gray-500 mt-1">{workspacesError}</p>
+                <button
+                  className="mt-4 btn-outline"
+                  onClick={() => { setError(''); fetchWorkspaces(); }}
                 >
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl font-bold">Create New Workspace</h2>
-                      <button 
-                        className="text-gray-400 hover:text-gray-600"
-                        onClick={() => setShowCreateModal(false)}
-                      >
-                        <X size={24} />
-                      </button>
-                    </div>
-                    
-                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleCreateWorkspace(); }}>
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                          Workspace Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="name"
-                          name="name"
-                          type="text"
-                          className="input focus:ring-2 focus:ring-primary transition-all duration-200"
-                          placeholder="e.g. E-commerce Redesign"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          required
-                          autoFocus
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          This will be the main identifier for your workspace.
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                          Description
-                        </label>
-                        <textarea
-                          id="description"
-                          name="description"
-                          className="input focus:ring-2 focus:ring-primary transition-all duration-200"
-                          placeholder="What is this workspace for?"
-                          rows={3}
-                          value={formData.description}
-                          onChange={handleInputChange}
-                        ></textarea>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Add details about the project, product, or team this workspace is for.
-                        </p>
-                      </div>
-                      
-                      <div className="flex justify-end space-x-3 pt-2">
-                        <motion.button 
-                          type="button" 
-                          className="btn-secondary"
-                          onClick={() => setShowCreateModal(false)}
-                          disabled={isSubmitting}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Cancel
-                        </motion.button>
-                        <motion.button 
-                          type="submit" 
-                          className="btn-primary"
-                          disabled={isSubmitting}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {isSubmitting ? (
-                            <span className="flex items-center">
-                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              Creating...
-                            </span>
-                          ) : 'Create Workspace'}
-                        </motion.button>
-                      </div>
-                    </form>
-                  </motion.div>
-                </motion.div>
+                  Retry
+                </button>
+              </div>
+            )}
+            
+            {/* Side panel for creating workspaces */}
+            <AnimatePresence>
+              {showCreatePanel && (
+                <WorkspaceSidePanel 
+                  isOpen={showCreatePanel}
+                  onClose={() => setShowCreatePanel(false)}
+                  onSubmit={handleCreateWorkspace}
+                  isSubmitting={isSubmitting}
+                  title="Create New Workspace"
+                />
               )}
             </AnimatePresence>
             
