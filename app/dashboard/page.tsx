@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import SiteHeader from '../components/SiteHeader'
 import SidebarNav from '../components/SidebarNav'
-import { FiEdit2, FiFileText, FiUser, FiShare2, FiCheckCircle, FiPlus, FiBell, FiInfo, FiFolder } from 'react-icons/fi'
+import { FiEdit2, FiFileText, FiUser, FiShare2, FiCheckCircle, FiPlus, FiBell, FiInfo, FiFolder, FiClock, FiArrowRight } from 'react-icons/fi'
 import { Activity, activityService } from '../services/activity'
 import { SummaryMetric, statsService } from '../services/stats'
 import { Workspace } from '../types/workspace'
@@ -381,7 +381,7 @@ export default function Dashboard() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background wave-bg">
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
@@ -394,7 +394,7 @@ export default function Dashboard() {
             </div>
           ) : authError ? (
             <div className="flex flex-col items-center justify-center h-full p-4">
-              <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
+              <div className="glass-card-gradient rounded-lg p-8 max-w-md text-center">
                 <h2 className="text-2xl font-bold mb-4">Authentication Issue</h2>
                 <p className="text-gray-600 mb-6">
                   There was an issue with your authentication. This can happen if your session has expired or there's a problem connecting to the authentication service.
@@ -422,10 +422,15 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-          <div className="w-full p-6">
+          <div className="w-full p-6 md:p-8 relative">
+              {/* Background ornaments */}
+              <div className="gradient-ornament w-64 h-64 top-20 right-5 opacity-30"></div>
+              <div className="gradient-ornament w-48 h-48 bottom-20 left-10 opacity-20"></div>
+              <div className="gradient-ornament w-32 h-32 top-60 left-1/3 opacity-10"></div>
+              
               {/* If the metrics are empty, show a button to load demo data */}
               {(!metrics || metrics.length === 0) && (
-                <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border text-center">
+                <div className="mb-6 glass-card-gradient rounded-lg shadow-sm border text-center p-4">
                   <p className="mb-2">Unable to load your dashboard data</p>
                   <button 
                     onClick={skipAuth}
@@ -437,266 +442,383 @@ export default function Dashboard() {
               )}
               
             {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100 mb-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold">Hi {userName} 👋 Welcome back!</h1>
-                    <p className="text-gray-600 mt-1">
+            <div className="glass-card-gradient mb-8 relative overflow-hidden gradient-bg-primary">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="avatar-neon h-14 w-14 flex-shrink-0">
+                    {profileData?.full_name ? (
+                      <span className="text-lg font-semibold text-white">
+                        {profileData.full_name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    ) : (
+                      <FiUser size={24} className="text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                      Hi {userName} <span className="wave inline-block animate-pulse">👋</span>
+                    </h1>
+                    <p className="text-gray-700 mt-1">
                       {wordsThisWeek > 0 ? 
                         `You've generated ${wordsThisWeek.toLocaleString()} words this week. Keep up the great work!` : 
                         "Start generating copy to see your word count here!"}
                     </p>
+                  </div>
                 </div>
-                <div className="mt-4 md:mt-0">
-                    <button 
-                      className="btn-secondary text-sm"
-                      onClick={() => router.push('/library')}
-                    >
+                <div>
+                  <motion.button 
+                    className="bg-white text-primary font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:shadow-xl"
+                    onClick={() => router.push('/library')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
                     View my activity
-                  </button>
+                    <FiArrowRight size={16} />
+                  </motion.button>
                 </div>
               </div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 z-0"></div>
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full -ml-20 -mb-20 z-0"></div>
+              <div className="absolute bottom-10 right-20 w-20 h-20 bg-white/10 rounded-full z-0"></div>
             </div>
             
-              {/* Summary Metrics - Direct rendering instead of lazy loaded */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {/* Always show metrics even if they're not loaded yet */}
-                {(metrics && metrics.length > 0) ? (
-                  metrics.map((metric: SummaryMetric) => (
-                <div 
-                  key={metric.title}
-                  className="card p-4 flex items-center"
-                >
-                  <div className={`rounded-full p-3 mr-4 ${metric.color}`}>
+            {/* Summary Metrics - Direct rendering instead of lazy loaded */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+              {/* Always show metrics even if they're not loaded yet */}
+              {(metrics && metrics.length > 0) ? (
+                metrics.map((metric: SummaryMetric, index) => (
+                  <div 
+                    key={metric.title}
+                    className={`stat-card-2025 ${
+                      index === 0 ? 'primary' : 
+                      index === 1 ? 'success' : 
+                      index === 2 ? 'warning' : 
+                      'accent'
+                    } group`}
+                  >
+                    <div className="tooltip flex items-center">
+                      <div className={`rounded-full p-3 mr-4 ${metric.color}`}>
                         {metric.title === 'Active Projects' ? <FiFolder size={20} /> :
                           metric.title === 'Weekly Words' ? <FiFileText size={20} /> :
                           metric.title === 'Total Generations' ? <FiUser size={20} /> :
                           <FiCheckCircle size={20} />}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">{metric.title}</p>
-                    <div className="flex items-center">
-                      <span className="text-xl font-bold">{metric.value}</span>
-                          <span className={`ml-2 text-xs font-medium ${metric.trend === 'up' ? 'text-green-500' : metric.trend === 'down' ? 'text-red-500' : 'text-gray-500'}`}>
-                        {metric.change}
+                      </div>
+                      <span className="tooltip-text">
+                        {metric.title === 'Active Projects' ? 'Number of workspaces you have created' :
+                          metric.title === 'Weekly Words' ? 'Words generated in the last 7 days' :
+                          metric.title === 'Total Generations' ? 'Total AI-generated text outputs' :
+                          'Words available in your current plan'}
                       </span>
+                      <div>
+                        <p className="text-sm text-gray-600">{metric.title}</p>
+                        <div className="flex items-center">
+                          <span className="text-xl font-bold count-up">{metric.value}</span>
+                          <span className={`ml-2 text-xs font-medium ${metric.trend === 'up' ? 'text-green-500' : metric.trend === 'down' ? 'text-red-500' : 'text-gray-500'}`}>
+                            {metric.change}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                  ))
-                ) : (
-                  // Fallback hardcoded metrics if metrics array is empty
-                  <>
-                    <div className="card p-4 flex items-center">
+                ))
+              ) : (
+                // Fallback hardcoded metrics if metrics array is empty
+                <>
+                  <div className="stat-card-2025 primary group">
+                    <div className="tooltip flex items-center">
                       <div className="rounded-full p-3 mr-4 bg-blue-50">
                         <FiFolder size={20} />
                       </div>
+                      <span className="tooltip-text">Number of workspaces you have created</span>
                       <div>
                         <p className="text-sm text-gray-600">Active Projects</p>
                         <div className="flex items-center">
-                          <span className="text-xl font-bold">{Math.max(workspaceCountRef.current, workspaces?.length || 0)}</span>
+                          <span className="text-xl font-bold count-up">{Math.max(workspaceCountRef.current, workspaces?.length || 0)}</span>
                           <span className="ml-2 text-xs font-medium text-green-500">+1</span>
                         </div>
                       </div>
                     </div>
-                    <div className="card p-4 flex items-center">
+                  </div>
+                  <div className="stat-card-2025 success group">
+                    <div className="tooltip flex items-center">
                       <div className="rounded-full p-3 mr-4 bg-green-50">
                         <FiFileText size={20} />
                       </div>
+                      <span className="tooltip-text">Words generated in the last 7 days</span>
                       <div>
                         <p className="text-sm text-gray-600">Weekly Words</p>
                         <div className="flex items-center">
-                          <span className="text-xl font-bold">1,250</span>
+                          <span className="text-xl font-bold count-up">1,250</span>
                           <span className="ml-2 text-xs font-medium text-green-500">+12%</span>
                         </div>
                       </div>
                     </div>
-                    <div className="card p-4 flex items-center">
+                  </div>
+                  <div className="stat-card-2025 warning group">
+                    <div className="tooltip flex items-center">
                       <div className="rounded-full p-3 mr-4 bg-purple-50">
                         <FiUser size={20} />
                       </div>
+                      <span className="tooltip-text">Recent account activity</span>
                       <div>
                         <p className="text-sm text-gray-600">Team Activity</p>
                         <div className="flex items-center">
-                          <span className="text-xl font-bold">24</span>
+                          <span className="text-xl font-bold count-up">24</span>
                           <span className="ml-2 text-xs font-medium text-green-500">+5</span>
                         </div>
                       </div>
                     </div>
-                    <div className="card p-4 flex items-center">
+                  </div>
+                  <div className="stat-card-2025 accent group">
+                    <div className="tooltip flex items-center">
                       <div className="rounded-full p-3 mr-4 bg-amber-50">
                         <FiCheckCircle size={20} />
                       </div>
+                      <span className="tooltip-text">Average response time for AI operations</span>
                       <div>
                         <p className="text-sm text-gray-600">Avg. Response Time</p>
                         <div className="flex items-center">
-                          <span className="text-xl font-bold">1.2s</span>
+                          <span className="text-xl font-bold count-up">1.2s</span>
                           <span className="ml-2 text-xs font-medium text-red-500">-0.3s</span>
                         </div>
                       </div>
                     </div>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
             </div>
             
             {/* Call to Action Banner */}
             <div className="mb-8">
-              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 border border-primary/20">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div className="mb-4 md:mb-0">
-                    <h2 className="text-xl font-semibold mb-2">Get Started with CopySnap</h2>
-                    <p className="mb-0">Create a workspace to start generating context-aware UX copy for your product.</p>
+              <div className="glass-card-gradient gradient-bg-accent">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between p-6 gap-4 relative z-10">
+                  <div>
+                    <h2 className="text-xl font-semibold mb-2 text-gray-800">Get Started with CopySnap</h2>
+                    <p className="mb-0 text-gray-700">Create a workspace to start generating context-aware UX copy for your product.</p>
                   </div>
-                  <div className="flex space-x-4">
-                    <button 
-                      className="btn-primary"
-                        onClick={() => router.push('/workspaces')}
+                  <div className="flex flex-wrap gap-3">
+                    <motion.button 
+                      className="bg-white text-accent font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:shadow-xl"
+                      onClick={() => router.push('/workspaces')}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
                     >
+                      <FiPlus size={16} />
                       Create Workspace
-                    </button>
-                    <button 
-                      className="btn-secondary"
+                    </motion.button>
+                    <motion.button 
+                      className="bg-white/20 text-white border border-white/30 font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:bg-white/30"
                       onClick={handleInstallFigmaPlugin}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                        Connect Figma
-                    </button>
-                    </div>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#FFFFFF">
+                        <path d="M8 24a4 4 0 0 0 4-4v-4H8a4 4 0 0 0 0 8Z"/>
+                        <path d="M8 16h4V8H8a4 4 0 0 0 0 8Z" style={{ opacity: 0.9 }}/>
+                        <path d="M8 8h4V0H8a4 4 0 0 0 0 8Z" style={{ opacity: 0.8 }}/>
+                        <path d="M16 8a4 4 0 0 0 4-4 4 4 0 0 0-4-4h-4v8h4Z" style={{ opacity: 0.7 }}/>
+                        <path d="M20 12a4 4 0 0 0-4-4h-4v8h4a4 4 0 0 0 4-4Z" style={{ opacity: 0.6 }}/>
+                      </svg>
+                      Connect Figma
+                    </motion.button>
                   </div>
                 </div>
-              </div>
-              
-              {/* Dashboard Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Recent Workspaces */}
-                <div className="lg:col-span-2">
-                  <div className="card h-full">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-semibold">Recent Workspaces</h2>
-                        <Link href="/workspaces" className="text-primary text-sm font-medium">
-                          View All
-                        </Link>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 z-0"></div>
+                <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full -ml-20 -mb-20 z-0"></div>
               </div>
             </div>
             
-                    {workspacesLoading ? (
-                      <div className="p-6 flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                      </div>
-                    ) : workspaces.length === 0 ? (
-                      <div className="p-6 text-center">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-4">
-                          <FiFolder size={24} className="text-gray-400" />
-                        </div>
-                        <h3 className="text-lg font-medium mb-2">No workspaces yet</h3>
-                        <p className="text-gray-500 mb-4">Create your first workspace to get started</p>
-                <button 
-                          className="btn-primary"
-                          onClick={() => router.push('/workspaces')}
-                >
-                          Create Workspace
-                </button>
-              </div>
-                    ) : (
-                      <div>
-                        {filteredWorkspaces.map((workspace: Workspace) => (
-                          <Link 
-                            href={`/workspaces/${workspace.id}`} 
-                            key={workspace.id}
-                            className="block p-6 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{workspace.name}</h3>
-                                <p className="text-sm text-gray-500 mt-1">{workspace.description || 'No description'}</p>
-                      </div>
-                              <div className="text-sm text-gray-500">
-                                Updated {workspace.lastEdited}
+            {/* Dashboard Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Recent Workspaces */}
+              <div className="lg:col-span-2">
+                <div className="glass-card-gradient h-full flex flex-col">
+                  <div className="px-6 py-4 border-b border-white/10">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-lg font-semibold">Recent Workspaces</h2>
+                      <Link href="/workspaces" className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
+                        View All
+                        <FiArrowRight size={14} />
+                      </Link>
                     </div>
                   </div>
-                          </Link>
-                        ))}
-                        
-                        {workspaces.length > 3 && (
-                          <div className="p-4 text-center">
-                            <Link href="/workspaces" className="text-primary text-sm">
-                              View all {workspaces.length} workspaces
-                            </Link>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                </div>
-              </div>
-              
-                {/* Activity Feed + Tips */}
-                <div className="flex flex-col space-y-6">
-                  {/* Recent Activity */}
-                  <div className="card h-full">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <h2 className="text-lg font-semibold">Recent Activity</h2>
+                
+                  {workspacesLoading ? (
+                    <div className="p-6 flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                    
-                    <div className="p-6">
-                      {activities.length === 0 ? (
-                        <div className="text-center py-6">
-                          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-100 mb-4">
-                            <FiFileText size={24} className="text-gray-400" />
-                          </div>
-                          <h3 className="text-lg font-medium mb-2">No activity yet</h3>
-                          <p className="text-gray-500">
-                            Your recent actions will appear here
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {activities.slice(0, 4).map((activity: Activity) => (
-                            <div key={activity.id} className="flex items-start">
-                              <div className={`rounded-full p-2 mr-3 ${getActivityColor(activity.type)}`}>
-                                {getActivityIcon(activity.type)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{activity.description}</p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {activity.timestamp} 
-                                  {activity.workspace_name && (
-                                    <> · {activity.workspace_name}</>
+                  ) : workspaces.length === 0 ? (
+                    <div className="empty-state p-6 text-center flex-grow empty-state-animation">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                        <FiFolder size={28} className="text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">No workspaces yet</h3>
+                      <p className="text-gray-500 mb-4">Create your first workspace to get started</p>
+                      <motion.button 
+                        className="btn-primary flex items-center gap-2 mx-auto"
+                        onClick={() => router.push('/workspaces')}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <FiPlus size={16} />
+                        Create Workspace
+                      </motion.button>
+                    </div>
+                  ) : (
+                    <div className="flex-grow">
+                      {filteredWorkspaces.map((workspace: Workspace) => (
+                        <motion.div 
+                          key={workspace.id}
+                          whileHover={{ backgroundColor: 'rgba(249, 250, 251, 0.5)' }}
+                        >
+                          <Link 
+                            href={`/workspaces/${workspace.id}`}
+                            className="block p-6 border-b border-white/10 last:border-b-0 hover:bg-white/20 transition-all duration-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-grow">
+                                <h3 className="font-medium">{workspace.name}</h3>
+                                <p className="text-sm text-gray-500 mt-1 line-clamp-1">{workspace.description || 'No description'}</p>
+                                <div className="mt-2 flex gap-2">
+                                  {workspace.figmaLink && (
+                                    <span className="pill-badge-glow primary">
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="#4F46E5">
+                                        <path d="M8 24a4 4 0 0 0 4-4v-4H8a4 4 0 0 0 0 8Z"/>
+                                        <path d="M8 16h4V8H8a4 4 0 0 0 0 8Z" style={{ opacity: 0.9 }}/>
+                                        <path d="M8 8h4V0H8a4 4 0 0 0 0 8Z" style={{ opacity: 0.8 }}/>
+                                        <path d="M16 8a4 4 0 0 0 4-4 4 4 0 0 0-4-4h-4v8h4Z" style={{ opacity: 0.7 }}/>
+                                        <path d="M20 12a4 4 0 0 0-4-4h-4v8h4a4 4 0 0 0 4-4Z" style={{ opacity: 0.6 }}/>
+                                      </svg>
+                                      Figma
+                                    </span>
                                   )}
-                                </p>
+                                  {workspace.brandVoiceFile && (
+                                    <span className="pill-badge-glow success">
+                                      <FiFileText size={12} className="text-success-dark" />
+                                      Brand Voice
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                <div className="pill-badge-glow accent">
+                                  <FiClock size={12} className="text-accent-dark" />
+                                  Updated {workspace.lastEdited}
+                                </div>
+                                <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <FiArrowRight size={16} className="text-primary" />
+                                </div>
                               </div>
                             </div>
-                          ))}
+                          </Link>
+                        </motion.div>
+                      ))}
+                      
+                      {workspaces.length > 3 && (
+                        <div className="p-4 text-center border-t border-white/10">
+                          <Link href="/workspaces" className="text-primary text-sm hover:underline inline-flex items-center gap-1">
+                            View all {workspaces.length} workspaces
+                            <FiArrowRight size={14} />
+                          </Link>
                         </div>
                       )}
                     </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Activity Feed + Tips */}
+              <div className="flex flex-col space-y-6">
+                {/* Recent Activity */}
+                <div className="glass-card-gradient h-full flex flex-col">
+                  <div className="px-6 py-4 border-b border-white/10">
+                    <h2 className="text-lg font-semibold">Recent Activity</h2>
                   </div>
                   
-                  {/* Tips and Updates */}
-                  <div className="card">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <h2 className="text-lg font-semibold">Tips & Updates</h2>
-            </div>
-
-                    <div className="p-4">
-                      {tipsAndUpdates.map((tip) => (
-                        <div key={tip.id} className="p-2 mb-2 last:mb-0">
-                          <div className="flex items-start">
-                            <div className="mr-3 mt-1">{tip.icon}</div>
-                      <div>
-                              <h3 className="font-medium text-sm">{tip.title}</h3>
-                              <p className="text-sm text-gray-600 mt-1">{tip.description}</p>
-                              <Link href={tip.link} className="text-primary text-sm font-medium mt-2 inline-block">
-                                {tip.actionText}
-                              </Link>
+                  <div className="p-6 flex-grow">
+                    {activities.length === 0 ? (
+                      <div className="empty-state text-center py-6 empty-state-animation">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 mb-4">
+                          <FiFileText size={28} className="text-accent" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">Ready when you are</h3>
+                        <p className="text-gray-500 mb-4">
+                          Create your first copy to start building your activity feed
+                        </p>
+                        <motion.button 
+                          className="bg-accent text-white font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 mx-auto"
+                          onClick={() => router.push('/workspaces')}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <FiPlus size={16} />
+                          Start creating
+                        </motion.button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {activities.slice(0, 4).map((activity: Activity) => (
+                          <div key={activity.id} className="flex items-start group hover:bg-white/10 p-3 rounded-md transition-colors">
+                            <div className={`rounded-full p-2 mr-3 ${getActivityColor(activity.type)}`}>
+                              {getActivityIcon(activity.type)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{activity.description}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="pill-badge-glow">
+                                  <FiClock size={12} />
+                                  {activity.timestamp}
+                                </span>
+                                {activity.workspace_name && (
+                                  <span className="pill-badge-glow primary">
+                                    {activity.workspace_name}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
+                </div>
+                
+                {/* Tips and Updates */}
+                <div className="glass-card-gradient">
+                  <div className="px-6 py-4 border-b border-white/10">
+                    <h2 className="text-lg font-semibold">Tips & Updates</h2>
+                  </div>
+
+                  <div className="p-4">
+                    {tipsAndUpdates.map((tip) => (
+                      <motion.div 
+                        key={tip.id}
+                        className="p-3 mb-2 last:mb-0 rounded-lg hover:bg-white/10 transition-colors"
+                        whileHover={{ x: 2 }}
+                      >
+                        <div className="flex items-start">
+                          <div className="mr-3 mt-1 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 shadow-sm p-2 flex-shrink-0">
+                            {tip.icon}
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-sm">{tip.title}</h3>
+                            <p className="text-sm text-gray-600 mt-1">{tip.description}</p>
+                            <Link 
+                              href={tip.link} 
+                              className="text-primary text-sm font-medium mt-2 inline-flex items-center gap-1 hover:underline"
+                            >
+                              {tip.actionText}
+                              <FiArrowRight size={14} />
+                            </Link>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-              </div>
-            </div>
           )}
         </main>
       </div>

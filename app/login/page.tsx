@@ -38,18 +38,36 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setLoading(true)
+    console.log('Login attempt with:', email)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // First try signing out if there's any stale session
+      await supabase.auth.signOut()
+      console.log('Cleared any existing sessions')
+      
+      // Now attempt to sign in
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Login error:', error)
+        throw error
+      }
 
-      router.push('/dashboard')
-      router.refresh()
+      console.log('Login successful, session:', data.session ? 'Valid' : 'Invalid')
+      
+      // Navigate to dashboard with a forced refresh
+      if (typeof window !== 'undefined') {
+        console.log('Redirecting to dashboard...')
+        window.location.href = '/dashboard'
+      } else {
+        router.push('/dashboard')
+        router.refresh()
+      }
     } catch (err) {
+      console.error('Login exception:', err)
       setError(err instanceof Error ? err.message : 'An error occurred during login')
     } finally {
       setLoading(false)

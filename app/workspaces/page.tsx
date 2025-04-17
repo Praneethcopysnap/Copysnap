@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense, useRef, useCallback } from 'react'
 import SiteHeader from '../components/SiteHeader'
 import SidebarNav from '../components/SidebarNav'
 import WorkspaceGrid from '../components/WorkspaceGrid'
@@ -12,8 +12,6 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 // Import workspace type
 import { Workspace } from '../types/workspace'
-import { getWorkspaces, addWorkspace } from '../services/workspace'
-import { getSession } from '../services/auth'
 import WorkspaceSidePanel from '../components/WorkspaceSidePanel'
 
 // Create a simple loading fallback
@@ -61,7 +59,7 @@ export default function WorkspacesPage() {
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
-  const [formData, setFormData] = useState<FormData>({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,17 +96,32 @@ export default function WorkspacesPage() {
           }
         }, 5000); // 5 second timeout
         
-        // Check if user is authenticated
-        const session = await getSession();
+        // Check if user is authenticated using Supabase client
+        const { data, error: authError } = await supabase.auth.getSession();
         
         // Clear the timeout since we got a response
         clearTimeout(authTimeout);
         
         if (!mounted) return;
         
-        if (session) {
+        if (authError) {
+          console.error('Auth error:', authError);
+          setError('Authentication failed. Please try logging in again.');
+          setLoading(false);
+          setAuthChecked(true);
+          
+          // Redirect to login after a brief delay
+          setTimeout(() => {
+            if (mounted) router.push('/login');
+          }, 2000);
+          return;
+        }
+        
+        if (data.session) {
           setIsAuthenticated(true);
-          await fetchWorkspaces();
+          
+          // Use the context's refreshWorkspaces to get the latest workspaces
+          await refreshWorkspaces(true);
         } else {
           console.log('No active session');
           setError('No active session. Please log in.');
@@ -152,39 +165,7 @@ export default function WorkspacesPage() {
     };
   }, [router, supabase.auth, refreshWorkspaces, workspacesLoading]);
   
-  const fetchWorkspaces = async () => {
-    try {
-      const fetchedWorkspaces = await getWorkspaces();
-      await refreshWorkspaces(true); // Force refresh to ensure we have the latest data
-    } catch (error) {
-      console.error('Error fetching workspaces:', error);
-      
-      // Check if it's an auth error
-      if (error instanceof Error && error.message.includes('auth')) {
-        setIsAuthenticated(false);
-        router.push('/login');
-      } else {
-        setError('Failed to load workspaces. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Filter options
-  const filterOptions: FilterOption[] = [
-    { value: 'all', label: 'All Workspaces' },
-    { value: 'recent', label: 'Recently Updated' },
-    { value: 'owned', label: 'Owned by Me' },
-    { value: 'shared', label: 'Shared with Me' },
-  ];
-
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData((prev: FormData) => ({ ...prev, [name]: value }));
-  };
-  
-  const handleCreateWorkspace = async (workspaceData: FormData) => {
+  const handleCreateWorkspace = async (workspaceData: any) => {
     if (!workspaceData.name.trim()) {
       showToast('Please enter a workspace name', 'error');
       return;
@@ -194,7 +175,46 @@ export default function WorkspacesPage() {
     
     try {
       console.log('Attempting to create workspace:', workspaceData);
-      const newWorkspace = await addWorkspace(workspaceData.name, workspaceData.description);
+      
+      // Extract the basic properties
+      const { name, description } = workspaceData;
+      
+      // Extract the optional properties for workspaceOptions, checking schema compatibility
+      const options: any = {};
+      
+      // Only add fields if they have values
+      if (workspaceData.figma_link) {
+        options.figma_link = workspaceData.figma_link;
+      }
+      
+      // These fields might not exist in all database schemas, so make them optional
+      try {
+        if (workspaceData.brand_voice_file) {
+          options.brand_voice_file = workspaceData.brand_voice_file;
+        }
+        
+        if (workspaceData.tone) {
+          options.tone = workspaceData.tone;
+        }
+        
+        if (workspaceData.style) {
+          options.style = workspaceData.style;
+        }
+        
+        if (workspaceData.voice) {
+          options.voice = workspaceData.voice;
+        }
+        
+        if (workspaceData.persona_description) {
+          options.persona_description = workspaceData.persona_description;
+        }
+      } catch (error) {
+        console.warn('Some fields may not be supported by your database schema:', error);
+      }
+      
+      // Call addWorkspace with all the data
+      const newWorkspace = await addWorkspace(name, description, options);
+      
       console.log('Workspace created successfully:', newWorkspace);
       setShowCreatePanel(false);
       setFormData({ name: '', description: '' });
@@ -314,6 +334,19 @@ export default function WorkspacesPage() {
       </div>
     );
   }
+  
+  // Filter options
+  const filterOptions: FilterOption[] = [
+    { value: 'all', label: 'All Workspaces' },
+    { value: 'recent', label: 'Recently Updated' },
+    { value: 'owned', label: 'Owned by Me' },
+    { value: 'shared', label: 'Shared with Me' },
+  ];
+
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -444,7 +477,7 @@ export default function WorkspacesPage() {
                 <p className="text-gray-500 mt-1">{workspacesError}</p>
                 <button
                   className="mt-4 btn-outline"
-                  onClick={() => { setError(''); fetchWorkspaces(); }}
+                  onClick={() => { setError(''); refreshWorkspaces(true); }}
                 >
                   Retry
                 </button>

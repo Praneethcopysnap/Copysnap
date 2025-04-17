@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Upload, Info, CheckCircle, Zap } from 'lucide-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface WorkspaceSidePanelProps {
   isOpen: boolean;
@@ -88,8 +89,25 @@ const WorkspaceSidePanel = ({
         const fileFormData = new FormData();
         fileFormData.append('file', brandVoiceFile);
         
+        // Get current session directly
+        const supabase = createClientComponentClient();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.error('No active session for file upload:', sessionError);
+          alert('Authentication error. Please log in again.');
+          return;
+        }
+        
+        // Get access token from the current session
+        const accessToken = session.access_token;
+        console.log('Uploading file with valid authorization token');
+        
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          },
           body: fileFormData,
         });
         

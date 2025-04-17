@@ -6,4 +6,12 @@ export interface Workspace {
   members: number;
   dateCreated?: string;
   copyCount?: number;
+  
+  // Additional fields for extended functionality
+  figmaLink?: string;
+  brandVoiceFile?: string;
+  tone?: string;
+  style?: string;
+  voice?: string;
+  personaDescription?: string;
 } 

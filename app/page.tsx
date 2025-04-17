@@ -341,7 +341,7 @@ export default function Home() {
   const DemoSection = () => (
     <section id="demo" ref={demoRef} className="py-20">
       <div className="max-w-4xl mx-auto px-4">
-        <motion.div
+        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -353,7 +353,7 @@ export default function Home() {
           </p>
         </motion.div>
         
-        <motion.div 
+          <motion.div
           className="bg-white rounded-lg shadow-lg border overflow-hidden"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -361,11 +361,11 @@ export default function Home() {
           viewport={{ once: true, margin: "-100px" }}
         >
           <div className="bg-gray-50 border-b px-6 py-4 flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-400"></div>
-            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-            <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
             <span className="text-xs text-gray-500 ml-2">CopySnap Figma Plugin</span>
-          </div>
+              </div>
           
           <div className="p-6">
             <div className="mb-6">
@@ -507,9 +507,9 @@ export default function Home() {
                 </motion.button>
               </motion.div>
               
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
                 className="flex items-center gap-4 mt-8"
               >
@@ -519,14 +519,14 @@ export default function Home() {
                   <Image src="/images/logo.png" alt="Airbnb" width={76} height={24} className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
                   <Image src="/images/logo.png" alt="Slack" width={72} height={24} className="grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
                 </div>
-              </motion.div>
+                  </motion.div>
             </div>
             
             {/* Right side animation */}
             <div className="w-full lg:w-1/2 relative">
-              <motion.div
+                  <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.7, delay: 0.3 }}
                 className="relative w-full mx-auto overflow-hidden"
               >
@@ -552,7 +552,7 @@ export default function Home() {
                             <p className="text-sm font-medium text-gray-800">Log in to your account</p>
                             <p className="text-xs text-gray-500 mt-1">Rating: 98% matches brand voice</p>
                           </div>
-                        </motion.div>
+                  </motion.div>
                         
                         <motion.div 
                           className="p-3 rounded-lg border border-blue-200 bg-blue-50 flex items-start gap-3"
@@ -564,7 +564,7 @@ export default function Home() {
                           <div>
                             <p className="text-sm font-medium text-gray-800">Welcome back, sign in to continue</p>
                             <p className="text-xs text-gray-500 mt-1">Rating: 92% matches brand voice</p>
-                          </div>
+                </div>
                         </motion.div>
                         
                         <motion.div 
@@ -577,9 +577,9 @@ export default function Home() {
                           <div>
                             <p className="text-sm font-medium text-gray-800">Sign in to access your dashboard</p>
                             <p className="text-xs text-gray-500 mt-1">Rating: 88% matches brand voice</p>
-                          </div>
+              </div>
                         </motion.div>
-                      </div>
+            </div>
                     </div>
                   </div>
                 </div>
@@ -595,11 +595,11 @@ export default function Home() {
         {/* Scroll down indicator */}
         <motion.div 
           className="flex justify-center mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
           transition={{ delay: 1.5, duration: 1 }}
         >
-          <motion.button
+              <motion.button 
             animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
             className="text-gray-400 hover:text-gray-700 transition-colors"
@@ -610,17 +610,17 @@ export default function Home() {
             aria-label="Scroll to How It Works"
           >
             <ChevronDown size={24} />
-          </motion.button>
+              </motion.button>
         </motion.div>
       </section>
-
+      
       {/* How It Works Section */}
       <section id="how-it-works" className="py-20 bg-white">
         <div className="container mx-auto px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
             className="max-w-3xl mx-auto text-center mb-12"
           >
@@ -630,7 +630,7 @@ export default function Home() {
             <p className="text-lg text-gray-600">
               Generate on-brand UX copy in seconds with our AI-powered platform
             </p>
-          </motion.div>
+              </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
@@ -655,7 +655,7 @@ export default function Home() {
                     <path d="M8 8.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"></path>
                   </svg>
                 </motion.div>
-              </div>
+          </div>
               
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Connect Your Design
@@ -876,9 +876,9 @@ export default function Home() {
                     <option>Professional</option>
                     <option>Friendly</option>
                     <option>Playful</option>
-                  </select>
-                </div>
-                
+              </select>
+            </div>
+            
                 <button className="text-xs bg-primary text-white px-3 py-1.5 rounded-md flex items-center gap-1">
                   <Play size={12} />
                   Refresh
@@ -909,7 +909,7 @@ export default function Home() {
                     <div className="flex justify-center py-4">
                       <button className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium">
                         Continue with account
-                      </button>
+            </button>
                     </div>
                     
                     <div className="mt-2 text-center">
@@ -934,8 +934,8 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Error Message</span>
                         <span className="text-xs text-gray-500">Form Validation</span>
-                      </div>
                     </div>
+                  </div>
                     
                     <div className="flex justify-center py-4">
                       <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start gap-2 max-w-md">
@@ -945,7 +945,7 @@ export default function Home() {
                         <div>
                           <p className="font-medium">Unable to process your request</p>
                           <p className="text-red-600 opacity-80 mt-1">Please check your information and try again.</p>
-                        </div>
+                </div>
                       </div>
                     </div>
                     
@@ -1017,8 +1017,8 @@ export default function Home() {
                       </div>
                     </div>
                     
-                    <div className="space-y-3">
-                      <motion.div 
+                <div className="space-y-3">
+                    <motion.div 
                         className="p-3 bg-white rounded-lg border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer flex justify-between items-center"
                         whileHover={{ scale: 1.02 }}
                       >
@@ -1026,7 +1026,7 @@ export default function Home() {
                         <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                      </motion.div>
+                    </motion.div>
                       
                       <motion.div 
                         className="p-3 bg-white rounded-lg border border-gray-200 hover:border-primary hover:shadow-sm transition-all cursor-pointer flex justify-between items-center"
@@ -1045,7 +1045,7 @@ export default function Home() {
                         <span className="font-medium text-primary">Continue with account</span>
                         <Check size={16} className="text-primary" />
                       </motion.div>
-                    </div>
+                </div>
                   </motion.div>
                   
                   {/* Features promoter */}
@@ -1090,8 +1090,8 @@ export default function Home() {
                       <ArrowRight size={16} />
                     </motion.a>
                   </motion.div>
-                </div>
-              </div>
+            </div>
+          </div>
             </div>
           </motion.div>
         </div>
@@ -1168,7 +1168,7 @@ export default function Home() {
               }
             ].map((persona, index) => (
               <motion.div
-                key={index}
+                    key={index} 
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
@@ -1221,10 +1221,10 @@ export default function Home() {
       {/* Brand Voice Tuner Section */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
@@ -1261,11 +1261,11 @@ export default function Home() {
                           <Info size={14} className="text-gray-400 cursor-help" />
                           <div className="absolute left-0 -top-2 transform -translate-y-full w-64 p-2 bg-black rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
                             Affects how casual or formal your copy will sound
-                          </div>
-                        </div>
+                  </div>
+                  </div>
                       </label>
                       <span className="text-xs font-medium text-primary">70%</span>
-                    </div>
+                </div>
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs text-gray-500">
@@ -1286,9 +1286,9 @@ export default function Home() {
                           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                         />
                         <div className="absolute inset-0 w-[70%] h-2 bg-gradient-to-r from-blue-400 to-primary rounded-l-lg pointer-events-none"></div>
-                      </motion.div>
-                    </div>
-                  </div>
+              </motion.div>
+          </div>
+        </div>
                   
                   {/* Style Slider */}
                   <div className="space-y-3">
@@ -1325,7 +1325,7 @@ export default function Home() {
                         />
                         <div className="absolute inset-0 w-[40%] h-2 bg-gradient-to-r from-blue-400 to-primary rounded-l-lg pointer-events-none"></div>
                       </motion.div>
-                    </div>
+            </div>
                   </div>
                   
                   {/* Voice Slider */}
@@ -1347,9 +1347,9 @@ export default function Home() {
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Human</span>
                         <span>Professional</span>
-                      </div>
-                      
-                      <motion.div
+          </div>
+          
+          <motion.div
                         whileHover={{ scale: 1.02 }}
                         className="relative"
                       >
@@ -1418,8 +1418,8 @@ export default function Home() {
                 </h3>
                 
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                   className="space-y-4"
                 >
@@ -1429,10 +1429,10 @@ export default function Home() {
                     <div className="flex justify-between items-center">
                       <div className="bg-primary text-white text-sm font-medium py-2 px-4 rounded">
                         Continue to Dashboard
-                      </div>
+                </div>
                       <CheckCircle size={16} className="text-green-500" />
-                    </div>
-                  </div>
+                </div>
+              </div>
                   
                   {/* Preview of Success Message */}
                   <div className="bg-white p-5 rounded-xl border border-gray-200">
@@ -1441,10 +1441,10 @@ export default function Home() {
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle size={16} className="text-green-500" />
                         <span>Your changes have been successfully saved.</span>
-                      </div>
+                </div>
                       <CheckCircle size={16} className="text-green-500" />
-                    </div>
-                  </div>
+                </div>
+              </div>
                   
                   {/* Preview of Error Message */}
                   <div className="bg-white p-5 rounded-xl border border-gray-200">
@@ -1473,12 +1473,12 @@ export default function Home() {
                   <div className="mt-6 bg-blue-50 p-4 rounded-lg text-sm text-blue-700 border border-blue-100">
                     <div className="flex items-start gap-2">
                       <Info size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
-                      <div>
+                <div>
                         <p className="font-medium mb-1">Professional, Concise, Tech-Focused</p>
                         <p>Your current voice settings suggest a professional tone with direct messaging and a focus on clarity.</p>
-                      </div>
-                    </div>
-                  </div>
+                </div>
+                </div>
+              </div>
                 </motion.div>
               </div>
             </div>
@@ -1591,14 +1591,14 @@ export default function Home() {
               <div className="mb-4">
                 <Link href="/" className="inline-block">
                   <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                    <Image 
-                      src="/images/logo.png" 
-                      alt="CopySnap Logo" 
-                      width={152} 
-                      height={40} 
-                      priority
+                <Image 
+                  src="/images/logo.png" 
+                  alt="CopySnap Logo" 
+                  width={152} 
+                  height={40} 
+                  priority
                       className="transition-opacity hover:opacity-90"
-                    />
+                />
                   </motion.div>
                 </Link>
               </div>
@@ -1662,14 +1662,14 @@ export default function Home() {
       </footer>
       
       {/* Enhanced Sticky CTA Banner - Full-width Call to Action */}
-      <motion.div 
+        <motion.div 
         className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-accent shadow-lg border-t p-4 z-30"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
         exit={{ y: 100 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-      >
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between">
+        >
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between">
           <div className="flex-grow md:mr-4">
             <input 
               type="email" 
@@ -1704,8 +1704,8 @@ export default function Home() {
               Install Figma Plugin
             </motion.a>
           </div>
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
     </div>
   )
 } 

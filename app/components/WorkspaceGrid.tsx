@@ -4,7 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Workspace } from '../types/workspace';
-import { FiFileText, FiArchive, FiEdit, FiLayout, FiPlus, FiClock } from 'react-icons/fi';
+import { FiFileText, FiArchive, FiEdit, FiLayout, FiPlus, FiClock, FiLink } from 'react-icons/fi';
+import { Zap, FileText, Figma, Users } from 'lucide-react';
 
 interface WorkspaceGridProps {
   workspaces: Workspace[];
@@ -115,19 +116,41 @@ const WorkspaceGrid = ({ workspaces, onCreateWorkspace, loading = false }: Works
         const colorScheme = getWorkspaceColor(workspace.id);
         const icon = getWorkspaceIcon(workspace.id);
         
+        // Check if workspace has AI settings
+        const hasAI = !!(workspace.tone || workspace.style || workspace.voice || workspace.personaDescription);
+        
+        // Determine tone style display if available
+        let toneDisplay = '';
+        if (workspace.tone && workspace.style) {
+          const toneValue = parseInt(workspace.tone);
+          const styleValue = parseInt(workspace.style);
+          
+          let toneLabel = toneValue < 40 ? 'Friendly' : toneValue > 70 ? 'Formal' : 'Balanced';
+          let styleLabel = styleValue < 40 ? 'Brief' : styleValue > 70 ? 'Descriptive' : 'Balanced';
+          
+          toneDisplay = `${toneLabel} | ${styleLabel}`;
+        }
+        
         return (
           <motion.div
             key={workspace.id}
             variants={item}
-            whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            whileHover={{ 
+              y: -5, 
+              transition: { duration: 0.2 } 
+            }}
             className={`group relative overflow-hidden rounded-xl border ${colorScheme.border} shadow-sm hover:shadow-lg transition-all duration-300 h-48`}
           >
             <div className={`absolute inset-0 bg-gradient-to-br ${colorScheme.from} ${colorScheme.to} opacity-50`}></div>
             
             <Link href={`/workspaces/${workspace.id}`} className="absolute inset-0 p-5 flex flex-col">
-              <div className="flex justify-between items-start mb-3">
-                <div className={`rounded-full p-2 ${colorScheme.from} ${colorScheme.icon}`}>
-                  {icon}
+              {/* Header section */}
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-start gap-2">
+                  <div className={`rounded-full p-2 ${colorScheme.from} ${colorScheme.icon}`}>
+                    {icon}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 line-clamp-1 pt-1">{workspace.name}</h3>
                 </div>
                 <div className="flex items-center space-x-1 text-xs text-gray-500">
                   <FiClock size={14} />
@@ -135,17 +158,84 @@ const WorkspaceGrid = ({ workspaces, onCreateWorkspace, loading = false }: Works
                 </div>
               </div>
               
-              <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{workspace.name}</h3>
+              {/* Description section */}
+              <div className="relative group">
+                <p className="text-sm text-gray-600 line-clamp-1 mb-2">
+                  {workspace.description || 'No description available'}
+                </p>
+                <div className="absolute inset-0 z-20 opacity-0 group-hover:opacity-100 pointer-events-none">
+                  <div className="absolute top-6 left-0 max-w-[90%] bg-gray-800 text-white text-xs p-2 rounded shadow-lg">
+                    {workspace.description || 'No description available'}
+                  </div>
+                </div>
+              </div>
               
-              <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                {workspace.description || 'No description available'}
-              </p>
+              {/* Metadata badges */}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {workspace.figmaLink && (
+                  <div className="group relative">
+                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-white/80 text-gray-700 border border-gray-200">
+                      <Figma size={12} className="mr-1 text-[#F24E1E]" />
+                      Figma
+                    </span>
+                    <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block z-10">
+                      <div className="bg-gray-800 text-white text-xs py-1 px-2 rounded">
+                        Figma design linked
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {workspace.brandVoiceFile && (
+                  <div className="group relative">
+                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-white/80 text-gray-700 border border-gray-200">
+                      <FileText size={12} className="mr-1 text-blue-600" />
+                      Voice
+                    </span>
+                    <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block z-10">
+                      <div className="bg-gray-800 text-white text-xs py-1 px-2 rounded">
+                        Brand voice document added
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {hasAI && (
+                  <div className="group relative">
+                    <span className="inline-flex items-center text-xs px-2 py-1 rounded-md bg-primary-50 text-primary-700 border border-primary-100">
+                      <Zap size={12} className="mr-1" />
+                      AI On
+                    </span>
+                    <div className="absolute bottom-full left-0 mb-1 hidden group-hover:block z-10">
+                      <div className="bg-gray-800 text-white text-xs py-1 px-2 rounded">
+                        AI copy generation enabled
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
               
+              {/* Tone and style section - if available */}
+              {toneDisplay && (
+                <div className="text-xs text-gray-600 mb-2 flex items-center">
+                  <span className="text-xs font-medium">Tone:</span>
+                  <span className="ml-1">{toneDisplay}</span>
+                </div>
+              )}
+              
+              {/* Bottom section */}
               <div className="mt-auto flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/80 text-gray-700 border border-gray-200">
                     {workspace.copyCount || 0} copies
                   </span>
+                  
+                  {workspace.members > 1 && (
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/80 text-gray-700 border border-gray-200 flex items-center">
+                      <Users size={12} className="mr-1" />
+                      {workspace.members}
+                    </span>
+                  )}
                 </div>
                 
                 <motion.div 

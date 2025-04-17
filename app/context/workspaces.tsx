@@ -9,8 +9,19 @@ interface WorkspacesContextType {
   workspaces: Workspace[];
   loading: boolean;
   error: string | null;
-  refreshWorkspaces: () => Promise<void>;
-  addWorkspace: (name: string, description: string) => Promise<Workspace>;
+  refreshWorkspaces: (forceRefresh?: boolean) => Promise<void>;
+  addWorkspace: (
+    name: string, 
+    description: string, 
+    options?: {
+      figma_link?: string;
+      brand_voice_file?: string;
+      tone?: string;
+      style?: string;
+      voice?: string;
+      persona_description?: string;
+    }
+  ) => Promise<Workspace>;
   getWorkspaceById: (id: string) => Workspace | undefined;
 }
 
@@ -200,7 +211,18 @@ export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
     refreshWorkspaces();
   }, []);
 
-  const addWorkspace = async (name: string, description: string) => {
+  const addWorkspace = async (
+    name: string, 
+    description: string,
+    options?: {
+      figma_link?: string;
+      brand_voice_file?: string;
+      tone?: string;
+      style?: string;
+      voice?: string;
+      persona_description?: string;
+    }
+  ) => {
     try {
       console.log('Starting workspace creation process');
       
@@ -232,21 +254,66 @@ export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
       
       console.log('Workspaces table is accessible');
       
-      // Insert new workspace
-      console.log('Attempting to insert workspace with owner_id:', user.id);
+      // Get the columns available in the workspaces table
+      const { data: columnsData, error: columnsError } = await supabase
+        .from('workspaces')
+        .select('*')
+        .limit(1);
+      
+      // Create a set of valid column names from the database
+      const validColumns = new Set(columnsData && columnsData.length > 0 
+        ? Object.keys(columnsData[0]) 
+        : ['owner_id', 'name', 'description', 'created_at', 'updated_at']);
+      
+      console.log('Valid columns in workspaces table:', Array.from(validColumns));
+      
+      // Prepare workspace data with only valid fields
+      const workspaceData: any = {
+        owner_id: user.id,
+        name,
+        description,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        members_count: 1,
+        copy_count: 0,
+      };
+      
+      // Add optional fields only if they exist in the database schema
+      if (options) {
+        if (options.figma_link && validColumns.has('figma_link')) {
+          workspaceData.figma_link = options.figma_link;
+        }
+        
+        // Use brand_voice_file_path instead of brand_voice_file for database compatibility
+        if (options.brand_voice_file && validColumns.has('brand_voice_file_path')) {
+          workspaceData.brand_voice_file_path = options.brand_voice_file;
+        } else if (options.brand_voice_file && validColumns.has('brand_voice_file')) {
+          workspaceData.brand_voice_file = options.brand_voice_file;
+        }
+        
+        if (options.tone && validColumns.has('tone')) {
+          workspaceData.tone = options.tone;
+        }
+        
+        if (options.style && validColumns.has('style')) {
+          workspaceData.style = options.style;
+        }
+        
+        if (options.voice && validColumns.has('voice')) {
+          workspaceData.voice = options.voice;
+        }
+        
+        if (options.persona_description && validColumns.has('persona_description')) {
+          workspaceData.persona_description = options.persona_description;
+        }
+      }
+      
+      console.log('Attempting to insert workspace with data:', workspaceData);
       
       // Try a simpler insert approach
       const { data, error: insertError } = await supabase
         .from('workspaces')
-        .insert({
-          owner_id: user.id,
-          name,
-          description,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          members_count: 1,
-          copy_count: 0
-        })
+        .insert(workspaceData)
         .select();
 
       if (insertError) {
@@ -273,7 +340,16 @@ export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
           month: 'long',
           day: 'numeric'
         }),
-        copyCount: 0
+        copyCount: 0,
+        
+        // Include additional fields in the workspace object only if they exist in the database response
+        ...(data[0].figma_link && { figmaLink: data[0].figma_link }),
+        ...(data[0].brand_voice_file_path && { brandVoiceFile: data[0].brand_voice_file_path }),
+        ...(data[0].brand_voice_file && { brandVoiceFile: data[0].brand_voice_file }),
+        ...(data[0].tone && { tone: data[0].tone }),
+        ...(data[0].style && { style: data[0].style }),
+        ...(data[0].voice && { voice: data[0].voice }),
+        ...(data[0].persona_description && { personaDescription: data[0].persona_description })
       };
 
       // Update local state

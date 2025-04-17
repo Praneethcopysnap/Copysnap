@@ -6,7 +6,7 @@
   --foreground-rgb: 31, 41, 55;
   --background-start-rgb: 249, 250, 251;
   --background-end-rgb: 255, 255, 255;
-  --font-sans: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   
   /* Primary color */
   --color-primary: 79, 70, 229; /* Indigo-600 */
@@ -98,7 +98,26 @@ body {
   }
   
   .card {
-    @apply bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow duration-300;
+    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300;
+  }
+  
+  /* 2025 Design Trend: Modern Card with Glassmorphism */
+  .glass-card {
+    @apply backdrop-blur-md bg-white/80 p-6 rounded-xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300;
+  }
+  
+  /* 2025 Design Trend: Stat Card with Micro-interactions */
+  .stat-card {
+    @apply relative p-5 rounded-xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1;
+  }
+  
+  .stat-card::after {
+    @apply absolute inset-0 rounded-xl border border-white/40 opacity-0 transition-opacity duration-300 content-[''];
+    box-shadow: 0 0 15px 2px rgba(var(--color-primary), 0.1);
+  }
+  
+  .stat-card:hover::after {
+    @apply opacity-100;
   }
   
   .input {
@@ -137,6 +156,28 @@ body {
     @apply bg-accent-light text-accent-dark;
   }
   
+  /* 2025 Design Trend: Modern Pill Badge */
+  .pill-badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-700 border border-gray-200 shadow-sm;
+  }
+  
+  /* 2025 Design Trend: Count-up Animation */
+  .count-up {
+    @apply transition-all duration-700;
+    animation: countUp 1.5s ease-out forwards;
+  }
+  
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
   /* Modern section styles */
   .section-title {
     @apply text-xl font-bold text-gray-800 mb-4;
@@ -144,5 +185,550 @@ body {
   
   .section-subtitle {
     @apply text-sm text-gray-500 mb-6;
+  }
+  
+  /* Empty state illustration container */
+  .empty-state {
+    @apply flex flex-col items-center justify-center p-8 rounded-lg bg-gray-50/50 border border-gray-100;
+  }
+  
+  /* Tooltip styles */
+  .tooltip {
+    @apply relative inline-block;
+  }
+  
+  .tooltip-text {
+    @apply invisible absolute z-10 w-48 bg-gray-800 text-white text-xs rounded-md p-2 
+           opacity-0 transition-opacity duration-300;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .tooltip:hover .tooltip-text {
+    @apply visible opacity-100;
+  }
+  
+  /* Dashboard image avatar */
+  .avatar {
+    @apply inline-flex items-center justify-center rounded-full bg-primary-100 text-primary-700 overflow-hidden;
+  }
+}
+
+/* 2025 Design Trend: Vibrant Gradients */
+.gradient-bg-primary {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.8) 0%, rgba(147, 51, 234, 0.7) 100%);
+}
+
+.gradient-bg-accent {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.8) 0%, rgba(244, 114, 182, 0.7) 100%);
+}
+
+.gradient-bg-success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(5, 150, 105, 0.7) 100%);
+}
+
+.gradient-bg-info {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.8) 0%, rgba(56, 189, 248, 0.7) 100%);
+}
+
+/* 2025 Design Trend: Frosted Glass Card with Modern Gradient Border */
+.glass-card-gradient {
+  @apply backdrop-blur-md bg-white/80 rounded-xl shadow-lg transition-all duration-300 relative overflow-hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-card-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem; /* matches rounded-xl */
+  padding: 1px;
+  background: linear-gradient(
+    to right bottom, 
+    rgba(255, 255, 255, 0.6), 
+    rgba(var(--color-primary), 0.3), 
+    rgba(var(--color-accent), 0.3)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* 2025 Design Trend: Animated Gradient Ornaments */
+.gradient-ornament {
+  @apply absolute rounded-full opacity-40 blur-xl;
+  background: linear-gradient(
+    to right bottom,
+    rgba(var(--color-primary), 0.3),
+    rgba(var(--color-accent), 0.3)
+  );
+  animation: float 15s ease-in-out infinite alternate;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(10px, -10px) rotate(5deg);
+  }
+  100% {
+    transform: translate(-10px, 10px) rotate(-5deg);
+  }
+}
+
+/* 2025 Design Trend: Modern Stat Card with Gradient Border */
+.stat-card-2025 {
+  @apply relative p-5 rounded-xl bg-white/90 shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.stat-card-2025::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem; /* matches rounded-xl */
+  padding: 2px;
+  background: linear-gradient(
+    to right, 
+    rgba(var(--color-primary), 0.5), 
+    rgba(var(--color-accent), 0.5)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card-2025:hover::before {
+  opacity: 1;
+}
+
+.stat-card-2025.primary::after {
+  @apply absolute bottom-0 left-0 h-1 w-full content-[''];
+  background: linear-gradient(to right, rgba(var(--color-primary), 0.7), rgba(var(--color-primary-light), 0.3));
+}
+
+.stat-card-2025.success::after {
+  @apply absolute bottom-0 left-0 h-1 w-full content-[''];
+  background: linear-gradient(to right, rgba(var(--color-success), 0.7), rgba(var(--color-success), 0.3));
+}
+
+.stat-card-2025.warning::after {
+  @apply absolute bottom-0 left-0 h-1 w-full content-[''];
+  background: linear-gradient(to right, rgba(var(--color-warning), 0.7), rgba(var(--color-warning), 0.3));
+}
+
+.stat-card-2025.accent::after {
+  @apply absolute bottom-0 left-0 h-1 w-full content-[''];
+  background: linear-gradient(to right, rgba(var(--color-accent), 0.7), rgba(var(--color-accent), 0.3));
+}
+
+/* 2025 Design Trend: Glowing Pill Badge */
+.pill-badge-glow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(200, 200, 200, 0.3);
+  box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.05);
+  color: #64748b;
+  white-space: nowrap;
+  backdrop-filter: blur(5px);
+}
+
+.pill-badge-glow.primary {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4338ca;
+  border-color: rgba(79, 70, 229, 0.2);
+}
+
+.pill-badge-glow.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.pill-badge-glow.accent {
+  background: rgba(236, 72, 153, 0.1);
+  color: #be185d;
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.pill-badge-glow.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+/* Animation for empty states */
+.empty-state-animation {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 2025 Design Trend: Animated Wave Background */
+.wave-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.wave-bg::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  z-index: -1;
+  background: radial-gradient(circle, rgba(var(--color-primary), 0.1) 0%, rgba(255, 255, 255, 0) 60%);
+  animation: rotate 15s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 2025 Design Trend: Neon Avatar */
+.avatar-neon {
+  @apply inline-flex items-center justify-center rounded-full overflow-hidden;
+  position: relative;
+  background: linear-gradient(135deg, rgba(var(--color-primary), 0.2), rgba(var(--color-accent), 0.2));
+  box-shadow: 0 0 15px rgba(var(--color-primary), 0.3);
+}
+
+.avatar-neon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  padding: 2px;
+  background: linear-gradient(
+    to right bottom, 
+    rgba(var(--color-primary), 0.8), 
+    rgba(var(--color-accent), 0.8)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Modern UI components for 2025 trends */
+.wave-bg {
+  background-color: #fcfcfd;
+  background-image: 
+    radial-gradient(at 20% 25%, rgba(79, 70, 229, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 80%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(249, 115, 22, 0.03) 0px, transparent 50%);
+}
+
+/* Gradient backgrounds */
+.gradient-bg-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+}
+
+.gradient-bg-accent {
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  color: white;
+}
+
+.gradient-bg-success {
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  color: white;
+}
+
+.gradient-bg-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: white;
+}
+
+/* Glassmorphism 2025 */
+.glass-card-gradient {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 24px -1px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Gradient ornaments */
+.gradient-ornament {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%);
+  opacity: 0.1;
+  filter: blur(40px);
+  z-index: 0;
+}
+
+/* Avatar with neon glow */
+.avatar-neon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 0 15px rgba(79, 70, 229, 0.5),
+    0 0 30px rgba(79, 70, 229, 0.2);
+}
+
+/* Glowing pill badge */
+.pill-badge-glow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(200, 200, 200, 0.3);
+  box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.05);
+  color: #64748b;
+  white-space: nowrap;
+  backdrop-filter: blur(5px);
+}
+
+.pill-badge-glow.primary {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4338ca;
+  border-color: rgba(79, 70, 229, 0.2);
+}
+
+.pill-badge-glow.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.pill-badge-glow.accent {
+  background: rgba(236, 72, 153, 0.1);
+  color: #be185d;
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.pill-badge-glow.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+/* 2025 Modern Stat Card */
+.stat-card-2025 {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 1.25rem;
+  position: relative;
+  box-shadow: 
+    0 4px 12px -1px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  transition: all 0.25s ease;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.stat-card-2025:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 12px 24px -2px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+}
+
+.stat-card-2025::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  opacity: 0.7;
+}
+
+.stat-card-2025.primary::before {
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+}
+
+.stat-card-2025.success::before {
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+}
+
+.stat-card-2025.warning::before {
+  background: linear-gradient(90deg, #f59e0b, #ec4899);
+}
+
+.stat-card-2025.accent::before {
+  background: linear-gradient(90deg, #ec4899, #8b5cf6);
+}
+
+/* Empty state animation */
+.empty-state-animation {
+  position: relative;
+}
+
+.empty-state-animation::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  animation: loading-shimmer 3s infinite;
+}
+
+@keyframes loading-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Button styles */
+.btn-primary {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 10px -3px rgba(79, 70, 229, 0.4);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 15px -3px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  background: white;
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 10px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+  box-shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  background: rgba(79, 70, 229, 0.05);
+}
+
+/* Tooltip enhancements */
+.tooltip {
+  position: relative;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  background-color: rgba(15, 23, 42, 0.9);
+  color: white;
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 10px;
+  position: absolute;
+  z-index: 1000;
+  top: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Color utilities */
+.text-success-dark {
+  color: #047857;
+}
+
+.text-accent-dark {
+  color: #be185d;
+}
+
+/* Count-up animation */
+.count-up {
+  animation: count-up 1.5s ease-out;
+}
+
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 } 
