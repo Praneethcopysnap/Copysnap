@@ -1,0 +1,9 @@
+# Ignore backup files
+app/page-backup.tsx
+app/page.fixed.tsx
+app/page.tsx.bak
+
+# Ignore build files
+.next/
+node_modules/
+out/ 
