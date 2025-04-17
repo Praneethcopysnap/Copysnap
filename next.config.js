@@ -14,6 +14,13 @@ const nextConfig = {
     maxInactiveAge: 25 * 1000,
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 4,
+  },
+  // Disable static optimization to fix build errors
+  experimental: {
+    // This will disable the static HTML export
+    appDocumentPreloading: false,
+    // Skip the static generation for pages with client components
+    output: 'standalone'
   }
 }
 
