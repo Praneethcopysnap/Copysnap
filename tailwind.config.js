@@ -5,6 +5,7 @@ module.exports = {
       './components/**/*.{js,ts,jsx,tsx}',
       './src/**/*.{js,ts,jsx,tsx}',
     ],
+    darkMode: 'class', // Enable dark mode using class strategy
     theme: {
       extend: {
         colors: {

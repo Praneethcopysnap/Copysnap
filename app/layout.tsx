@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Noto_Sans } from 'next/font/google'
 import React from 'react'
 import { WorkspacesProvider } from './context/workspaces'
+import { ThemeProvider } from './context/theme'
 import { Analytics } from '@vercel/analytics/react'
 
 const notoSans = Noto_Sans({ 
@@ -43,9 +44,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={notoSans.className}>
-        <WorkspacesProvider>
-          {children}
-        </WorkspacesProvider>
+        <ThemeProvider>
+          <WorkspacesProvider>
+            {children}
+          </WorkspacesProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
