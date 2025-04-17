@@ -256,13 +256,13 @@ export default function WorkspacePage() {
               
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <motion.button
-                    onClick={() => router.push('/workspaces')}
+              <motion.button
+                onClick={() => router.push('/workspaces')}
                     className="flex items-center justify-center h-9 w-9 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 mr-4"
                     whileHover={{ scale: 1.05 }}
-                  >
+              >
                     <FiArrowLeft size={18} />
-                  </motion.button>
+              </motion.button>
                   
                   <div>
                     <h1 className="text-xl font-bold text-gray-900">{workspace.name}</h1>
@@ -279,7 +279,7 @@ export default function WorkspacePage() {
                           No Brand Voice
                         </span>
                       )}
-                    </div>
+            </div>
                   </div>
                 </div>
                 
@@ -345,28 +345,28 @@ export default function WorkspacePage() {
                     </motion.button>
                   )}
                   
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                     className="btn-outline flex items-center text-sm border-primary text-primary"
                     onClick={() => setShowBrandVoiceModal(true)}
-                  >
+                >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
                     Set Brand Voice
-                  </motion.button>
+                </motion.button>
                   
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                     className="btn-primary flex items-center text-sm px-4 py-2 shadow-sm"
                     onClick={() => setShowCreateModal(true)}
-                  >
+                >
                     <FiPlus className="mr-2" size={16} />
                     New Content
-                  </motion.button>
-                </div>
+                </motion.button>
+              </div>
               </div>
             </div>
             
@@ -816,7 +816,7 @@ export default function WorkspacePage() {
                           <FiPlus size={14} className="mr-1" />
                           Add {contentTypes.find(t => t.id === activeTab)?.name || 'Content'}
                         </button>
-                      </div>
+                  </div>
                     )}
                   </div>
                 )}
@@ -827,10 +827,10 @@ export default function WorkspacePage() {
             {selectedItem && (
               <div className="w-80 overflow-y-auto flex-shrink-0 bg-white border-l">
                 <AnimatePresence mode="wait">
-                  <motion.div
+                <motion.div 
                     key="details"
                     initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                      animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     className="p-4"
                   >
@@ -858,14 +858,14 @@ export default function WorkspacePage() {
                         <button className="p-2 text-gray-600 hover:bg-gray-100 rounded">
                           <FiTrash2 size={16} />
                         </button>
-                      </div>
+                  </div>
                     </div>
                     
                     {selectedItemData && (
                       <div className="space-y-4">
                         {isEditMode ? (
-                          <div className="space-y-3">
-                            <div>
+                  <div className="space-y-3">
+                    <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Label
                               </label>
@@ -874,8 +874,8 @@ export default function WorkspacePage() {
                                 className="input w-full"
                                 defaultValue={selectedItemData.label}
                               />
-                            </div>
-                            <div>
+                    </div>
+                    <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Content
                               </label>
@@ -884,8 +884,8 @@ export default function WorkspacePage() {
                                 rows={4}
                                 defaultValue={selectedItemData.content}
                               ></textarea>
-                            </div>
-                            <div>
+                    </div>
+                    <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Context
                               </label>
@@ -894,7 +894,7 @@ export default function WorkspacePage() {
                                 className="input w-full"
                                 defaultValue={selectedItemData.context}
                               />
-                            </div>
+                    </div>
                             <div className="flex space-x-2 pt-2">
                               <button 
                                 onClick={() => setIsEditMode(false)} 
@@ -908,7 +908,7 @@ export default function WorkspacePage() {
                               >
                                 Save
                               </button>
-                            </div>
+                  </div>
                           </div>
                         ) : (
                           <div className="space-y-4">
@@ -943,7 +943,7 @@ export default function WorkspacePage() {
                         )}
                       </div>
                     )}
-                  </motion.div>
+                </motion.div>
                 </AnimatePresence>
               </div>
             )}
@@ -1164,7 +1164,7 @@ export default function WorkspacePage() {
                     <div className="text-sm text-gray-600 mb-4">
                       <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none">
                         <span>Upload a file</span>
-                        <input 
+                  <input
                           id="file-upload" 
                           name="file-upload" 
                           type="file" 
@@ -1198,7 +1198,7 @@ export default function WorkspacePage() {
                         />
                       </label>
                       <p>or drag and drop</p>
-                    </div>
+                </div>
                     <p className="text-xs text-gray-500">
                       PDF, DOC, DOCX, TXT up to 10MB
                     </p>
@@ -1210,7 +1210,7 @@ export default function WorkspacePage() {
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
                     <h3 className="text-lg font-medium text-gray-900 mb-1">Analyzing your brand voice</h3>
                     <p className="text-gray-500">Our AI is extracting key characteristics from your document...</p>
-                  </div>
+                </div>
                 )}
                 
                 {brandVoiceDoc && !isAnalyzing && (
@@ -1229,9 +1229,9 @@ export default function WorkspacePage() {
                           Analysis complete
                         </p>
                       </div>
-                      <button 
+                  <button 
                         className="ml-auto text-gray-400 hover:text-gray-500"
-                        onClick={() => {
+                    onClick={() => {
                           setBrandVoiceDoc(null);
                           setBrandVoiceAttributes({
                             tone: 'Professional',
@@ -1244,8 +1244,8 @@ export default function WorkspacePage() {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
-                      </button>
-                    </div>
+                  </button>
+                </div>
                     
                     <div className="bg-gray-50 rounded-lg p-4 border">
                       <h3 className="font-medium text-gray-900 mb-3">AI-Detected Brand Voice Attributes</h3>
@@ -1253,11 +1253,11 @@ export default function WorkspacePage() {
                         <div>
                           <h4 className="text-sm font-medium text-gray-700">Tone</h4>
                           <p className="text-sm text-gray-900 mt-1">{brandVoiceAttributes.tone}</p>
-                        </div>
+            </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-700">Personality</h4>
                           <p className="text-sm text-gray-900 mt-1">{brandVoiceAttributes.personality}</p>
-                        </div>
+          </div>
                       </div>
                       
                       <div className="mt-4">
@@ -1302,27 +1302,27 @@ export default function WorkspacePage() {
                 )}
                 
                 <div className="flex justify-end space-x-3 pt-2">
-                  <button 
-                    type="button" 
-                    className="btn-secondary"
+                <button 
+                  type="button" 
+                  className="btn-secondary"
                     onClick={() => setShowBrandVoiceModal(false)}
-                  >
+                >
                     Close
-                  </button>
+                </button>
                   {brandVoiceDoc && !isAnalyzing && (
-                    <button 
-                      type="button" 
-                      className="btn-primary"
-                      onClick={() => {
+                <button 
+                  type="button" 
+                  className="btn-primary"
+                  onClick={() => {
                         setShowBrandVoiceModal(false);
                         // In a real app, you'd save the voice analysis to the workspace
-                      }}
-                    >
+                  }}
+                >
                       Apply to Workspace
-                    </button>
+                </button>
                   )}
-                </div>
               </div>
+            </div>
             </motion.div>
           </motion.div>
         )}
@@ -1336,7 +1336,7 @@ export default function WorkspacePage() {
         itemId={shareItemId}
         workspaceName={workspace?.name || ''}
       />
-    </div>
+                </div>
   );
 }
 
@@ -1388,19 +1388,19 @@ function ShareModal({ isOpen, onClose, itemType, itemId, workspaceName }) {
             
             <div className="mb-6">
               <div className="flex border rounded-md overflow-hidden mb-4">
-                <button 
+                  <button 
                   className={`flex-1 py-2 px-4 text-sm ${shareOption === 'link' ? 'bg-primary-50 text-primary border-b-2 border-primary' : 'text-gray-500'}`}
                   onClick={() => setShareOption('link')}
-                >
+                  >
                   Get Link
-                </button>
-                <button 
+                  </button>
+                  <button 
                   className={`flex-1 py-2 px-4 text-sm ${shareOption === 'email' ? 'bg-primary-50 text-primary border-b-2 border-primary' : 'text-gray-500'}`}
                   onClick={() => setShareOption('email')}
                 >
                   Invite People
-                </button>
-              </div>
+                  </button>
+                </div>
               
               {shareOption === 'link' ? (
                 <div className="space-y-4">
@@ -1424,10 +1424,10 @@ function ShareModal({ isOpen, onClose, itemType, itemId, workspaceName }) {
                     </button>
                   </div>
                   
-                  <div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Link permissions
-                    </label>
+                  </label>
                     <select 
                       className="input w-full"
                       value={permissions}
@@ -1452,12 +1452,12 @@ function ShareModal({ isOpen, onClose, itemType, itemId, workspaceName }) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
-                  </div>
-                  
-                  <div>
+                </div>
+                
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Permissions
-                    </label>
+                  </label>
                     <select 
                       className="input w-full"
                       value={permissions}
@@ -1466,29 +1466,29 @@ function ShareModal({ isOpen, onClose, itemType, itemId, workspaceName }) {
                       <option value="view">Can view</option>
                       <option value="edit">Can edit</option>
                       <option value="admin">Admin</option>
-                    </select>
+                  </select>
                   </div>
                 </div>
               )}
-            </div>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                className="btn-secondary"
+                </div>
+                
+                <div className="flex justify-end space-x-3">
+                  <button 
+                    className="btn-secondary"
                 onClick={onClose}
-              >
-                Cancel
-              </button>
+                  >
+                    Cancel
+                  </button>
               {shareOption === 'email' && (
-                <button
-                  className="btn-primary"
+                  <button 
+                    className="btn-primary"
                   onClick={handleShare}
                   disabled={!email}
                 >
                   Share
-                </button>
+                  </button>
               )}
-            </div>
+                </div>
           </motion.div>
         </motion.div>
       )}
@@ -1534,12 +1534,12 @@ function NotificationsDropdown({ isOpen, onClose, notifications, onMarkAsRead })
                         {notification.type === 'mention' && (
                           <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
                             <FiUser size={16} />
-                          </div>
-                        )}
+          </div>
+        )}
                         {notification.type === 'update' && (
                           <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-500">
                             <FiRefreshCw size={16} />
-                          </div>
+    </div>
                         )}
                         {notification.type === 'approval' && (
                           <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">

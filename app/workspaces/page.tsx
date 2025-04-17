@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react'
 import SiteHeader from '../components/SiteHeader'
 // Lazy load sidebar
-const SidebarNavigation = lazy(() => import('../components/SidebarNav'))
+const SidebarNav = lazy(() => import('../components/SidebarNav'))
 // Lazy load workspace grid
 const WorkspaceGrid = lazy(() => import('../components/WorkspaceGrid'))
 import { useWorkspaces } from '../context/workspaces'
@@ -311,7 +311,7 @@ export default function WorkspacesPage() {
       
       <div className="fixed-layout">
         <Suspense fallback={<LoadingFallback />}>
-          <SidebarNavigation />
+          <SidebarNav />
         </Suspense>
         
         <main className="flex-grow overflow-y-auto w-full">

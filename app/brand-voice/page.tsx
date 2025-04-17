@@ -3,7 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import SiteHeader from "../components/SiteHeader"
-import SidebarNavigation from '../components/SidebarNav'
+import SidebarNav from '../components/SidebarNav'
 import BrandVoiceSettings from '../components/BrandVoiceSettings'
 
 export default function BrandVoicePage() {
@@ -12,7 +12,7 @@ export default function BrandVoicePage() {
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <SidebarNavigation />
+        <SidebarNav />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full pl-6 pr-6">

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import SiteHeader from '../components/SiteHeader'
-import SidebarNavigation from '../components/SidebarNav'
+import SidebarNav from '../components/SidebarNav'
 import { FiEdit2, FiFileText, FiUser, FiShare2, FiCheckCircle, FiPlus, FiBell, FiInfo, FiFolder } from 'react-icons/fi'
 import { Activity, activityService } from '../services/activity'
 import { SummaryMetric, statsService } from '../services/stats'
@@ -379,13 +379,13 @@ export default function Dashboard() {
       return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     }
   };
-
+  
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <SidebarNavigation />
+        <SidebarNav />
         
         <main className="flex-grow overflow-y-auto w-full">
           {isLoading ? (
@@ -422,7 +422,7 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            <div className="w-full p-6">
+          <div className="w-full p-6">
               {/* If the metrics are empty, show a button to load demo data */}
               {(!metrics || metrics.length === 0) && (
                 <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border text-center">
@@ -436,53 +436,53 @@ export default function Dashboard() {
                 </div>
               )}
               
-              {/* Welcome Banner */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100 mb-8">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
+            {/* Welcome Banner */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100 mb-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
                     <h1 className="text-2xl font-bold">Hi {userName} 👋 Welcome back!</h1>
                     <p className="text-gray-600 mt-1">
                       {wordsThisWeek > 0 ? 
                         `You've generated ${wordsThisWeek.toLocaleString()} words this week. Keep up the great work!` : 
                         "Start generating copy to see your word count here!"}
                     </p>
-                  </div>
-                  <div className="mt-4 md:mt-0">
+                </div>
+                <div className="mt-4 md:mt-0">
                     <button 
                       className="btn-secondary text-sm"
                       onClick={() => router.push('/library')}
                     >
-                      View my activity
-                    </button>
-                  </div>
+                    View my activity
+                  </button>
                 </div>
               </div>
-              
+            </div>
+            
               {/* Summary Metrics - Direct rendering instead of lazy loaded */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {/* Always show metrics even if they're not loaded yet */}
                 {(metrics && metrics.length > 0) ? (
                   metrics.map((metric: SummaryMetric) => (
-                    <div 
-                      key={metric.title}
-                      className="card p-4 flex items-center"
-                    >
-                      <div className={`rounded-full p-3 mr-4 ${metric.color}`}>
+                <div 
+                  key={metric.title}
+                  className="card p-4 flex items-center"
+                >
+                  <div className={`rounded-full p-3 mr-4 ${metric.color}`}>
                         {metric.title === 'Active Projects' ? <FiFolder size={20} /> :
                           metric.title === 'Weekly Words' ? <FiFileText size={20} /> :
                           metric.title === 'Total Generations' ? <FiUser size={20} /> :
                           <FiCheckCircle size={20} />}
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">{metric.title}</p>
-                        <div className="flex items-center">
-                          <span className="text-xl font-bold">{metric.value}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{metric.title}</p>
+                    <div className="flex items-center">
+                      <span className="text-xl font-bold">{metric.value}</span>
                           <span className={`ml-2 text-xs font-medium ${metric.trend === 'up' ? 'text-green-500' : metric.trend === 'down' ? 'text-red-500' : 'text-gray-500'}`}>
-                            {metric.change}
-                          </span>
-                        </div>
-                      </div>
+                        {metric.change}
+                      </span>
                     </div>
+                  </div>
+                </div>
                   ))
                 ) : (
                   // Fallback hardcoded metrics if metrics array is empty
@@ -537,29 +537,29 @@ export default function Dashboard() {
                     </div>
                   </>
                 )}
-              </div>
-              
-              {/* Call to Action Banner */}
-              <div className="mb-8">
-                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 border border-primary/20">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div className="mb-4 md:mb-0">
-                      <h2 className="text-xl font-semibold mb-2">Get Started with CopySnap</h2>
-                      <p className="mb-0">Create a workspace to start generating context-aware UX copy for your product.</p>
-                    </div>
-                    <div className="flex space-x-4">
-                      <button 
-                        className="btn-primary"
+            </div>
+            
+            {/* Call to Action Banner */}
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 border border-primary/20">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div className="mb-4 md:mb-0">
+                    <h2 className="text-xl font-semibold mb-2">Get Started with CopySnap</h2>
+                    <p className="mb-0">Create a workspace to start generating context-aware UX copy for your product.</p>
+                  </div>
+                  <div className="flex space-x-4">
+                    <button 
+                      className="btn-primary"
                         onClick={() => router.push('/workspaces')}
-                      >
-                        Create Workspace
-                      </button>
-                      <button 
-                        className="btn-secondary"
-                        onClick={handleInstallFigmaPlugin}
-                      >
+                    >
+                      Create Workspace
+                    </button>
+                    <button 
+                      className="btn-secondary"
+                      onClick={handleInstallFigmaPlugin}
+                    >
                         Connect Figma
-                      </button>
+                    </button>
                     </div>
                   </div>
                 </div>
@@ -576,9 +576,9 @@ export default function Dashboard() {
                         <Link href="/workspaces" className="text-primary text-sm font-medium">
                           View All
                         </Link>
-                      </div>
-                    </div>
-                    
+              </div>
+            </div>
+            
                     {workspacesLoading ? (
                       <div className="p-6 flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
@@ -590,13 +590,13 @@ export default function Dashboard() {
                         </div>
                         <h3 className="text-lg font-medium mb-2">No workspaces yet</h3>
                         <p className="text-gray-500 mb-4">Create your first workspace to get started</p>
-                        <button 
+                <button 
                           className="btn-primary"
                           onClick={() => router.push('/workspaces')}
-                        >
+                >
                           Create Workspace
-                        </button>
-                      </div>
+                </button>
+              </div>
                     ) : (
                       <div>
                         {filteredWorkspaces.map((workspace: Workspace) => (
@@ -606,14 +606,14 @@ export default function Dashboard() {
                             className="block p-6 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors"
                           >
                             <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-medium">{workspace.name}</h3>
+                      <div>
+                        <h3 className="font-medium">{workspace.name}</h3>
                                 <p className="text-sm text-gray-500 mt-1">{workspace.description || 'No description'}</p>
-                              </div>
+                      </div>
                               <div className="text-sm text-gray-500">
                                 Updated {workspace.lastEdited}
-                              </div>
-                            </div>
+                    </div>
+                  </div>
                           </Link>
                         ))}
                         
@@ -626,9 +626,9 @@ export default function Dashboard() {
                         )}
                       </div>
                     )}
-                  </div>
                 </div>
-                
+              </div>
+              
                 {/* Activity Feed + Tips */}
                 <div className="flex flex-col space-y-6">
                   {/* Recent Activity */}
@@ -675,26 +675,26 @@ export default function Dashboard() {
                   <div className="card">
                     <div className="px-6 py-4 border-b border-gray-200">
                       <h2 className="text-lg font-semibold">Tips & Updates</h2>
-                    </div>
-                    
+            </div>
+
                     <div className="p-4">
                       {tipsAndUpdates.map((tip) => (
                         <div key={tip.id} className="p-2 mb-2 last:mb-0">
                           <div className="flex items-start">
                             <div className="mr-3 mt-1">{tip.icon}</div>
-                            <div>
+                      <div>
                               <h3 className="font-medium text-sm">{tip.title}</h3>
                               <p className="text-sm text-gray-600 mt-1">{tip.description}</p>
                               <Link href={tip.link} className="text-primary text-sm font-medium mt-2 inline-block">
                                 {tip.actionText}
                               </Link>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+          </div>
               </div>
             </div>
           )}

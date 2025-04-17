@@ -1,7 +1,13 @@
+'use client';
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 
-export function SignOutButton() {
+interface SignOutButtonProps {
+  className?: string;
+}
+
+export function SignOutButton({ className }: SignOutButtonProps) {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
@@ -24,7 +30,7 @@ export function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+      className={className || "block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"}
     >
       Sign out
     </button>

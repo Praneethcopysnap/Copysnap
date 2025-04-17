@@ -1,7 +1,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import SiteHeader from "../components/SiteHeader"
-import SidebarNavigation from '../components/SidebarNav'
+import SidebarNav from '../components/SidebarNav'
 import ContentLibrary from '../components/Content_Library'
 
 export default function LibraryPage() {
@@ -10,7 +10,7 @@ export default function LibraryPage() {
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <SidebarNavigation />
+        <SidebarNav />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full pl-6 pr-6">

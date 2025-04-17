@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion';
 import { FiHome, FiFolder, FiArchive, FiMic, FiTool, FiHelpCircle, FiSettings } from 'react-icons/fi'
 
-export default function SidebarNavigation() {
+const SidebarNav = () => {
   const pathname = usePathname();
   
   const isActive = (path: string) => {
@@ -115,4 +115,6 @@ export default function SidebarNavigation() {
       </div>
     </motion.aside>
   )
-}
+};
+
+export default SidebarNav;

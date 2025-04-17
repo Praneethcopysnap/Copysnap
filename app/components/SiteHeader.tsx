@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { profileService } from '../services/profile';
 import { SignOutButton } from './SignOutButton';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -14,7 +14,9 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
   const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const [userName, setUserName] = useState('' as string);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClientComponentClient();
@@ -22,15 +24,23 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
   const handleSettingsClick = () => {
     router.push('/settings');
     setShowDropdown(false);
+    setMobileMenuOpen(false);
   };
   
   const handleDashboardClick = () => {
     router.push('/dashboard');
+    setMobileMenuOpen(false);
   };
   
   const handleProfileClick = () => {
     router.push('/settings/profile');
     setShowDropdown(false);
+    setMobileMenuOpen(false);
+  };
+
+  const handleGetStartedClick = () => {
+    router.push('/signup');
+    setMobileMenuOpen(false);
   };
   
   // Close dropdown when clicking outside
@@ -39,13 +49,16 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node) && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
     };
     
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [mobileMenuOpen]);
   
   // Detect scroll for header styling
   useEffect(() => {
@@ -61,6 +74,18 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -108,7 +133,7 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
       role="banner"
       initial={{ opacity: 0.9 }}
       animate={{ opacity: 1 }}
-      className={`fixed top-0 left-0 right-0 z-10 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-white'}`}
+      className={`fixed top-0 left-0 right-0 z-40 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-white'}`}
       style={{
         width: '100vw',
         maxWidth: '100%',
@@ -138,9 +163,21 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
             </Link>
           </div>
 
-          <div className="flex items-center space-x-4">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleDashboardClick}
+                  className="text-gray-600 hover:text-primary p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+                  aria-label="Dashboard"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -178,22 +215,25 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
                     </svg>
                   </motion.div>
                   
-                  {showDropdown && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
-                    >
-                      <button
-                        onClick={handleProfileClick}
-                        className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary transition-colors duration-150"
+                  <AnimatePresence>
+                    {showDropdown && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
                       >
-                        Profile Settings
-                      </button>
-                      <SignOutButton />
-                    </motion.div>
-                  )}
+                        <button
+                          onClick={handleProfileClick}
+                          className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary transition-colors duration-150"
+                        >
+                          Profile Settings
+                        </button>
+                        <SignOutButton />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </>
             ) : (
@@ -204,17 +244,135 @@ const SiteHeader = ({ isLoggedIn = false }: { isLoggedIn?: boolean }) => {
                 >
                   Login
                 </Link>
-                <Link
-                  href="/signup"
-                  className="bg-gradient-to-r from-primary to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Link
+                    href="/signup"
+                    className="bg-gradient-to-r from-primary to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white px-5 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
+                  >
+                    Sign Up
+                  </Link>
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.03 }} 
+                  whileTap={{ scale: 0.97 }}
+                  className="hidden lg:block"
                 >
-                  Sign Up
-                </Link>
+                  <button
+                    onClick={handleGetStartedClick}
+                    className="bg-accent hover:bg-accent-dark text-white px-5 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-md"
+                  >
+                    Get Started Free
+                  </button>
+                </motion.div>
               </>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <button
+              className="text-gray-700 hover:text-primary p-2 rounded-md"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {!mobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            ref={mobileMenuRef}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden bg-white border-t border-gray-200 shadow-lg"
+          >
+            <div className="px-4 py-4 space-y-3">
+              {isLoggedIn ? (
+                <>
+                  <div className="flex items-center space-x-3 p-2 border-b border-gray-100 pb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent text-white flex items-center justify-center shadow-sm">
+                      <span className="text-sm font-medium">
+                        {getUserInitials()}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">
+                        {isLoading ? 'Loading...' : userName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Logged in
+                      </div>
+                    </div>
+                  </div>
+                  <div className="py-2">
+                    <Link href="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                      Dashboard
+                    </Link>
+                    <SignOutButton />
+                  </div>
+                  <button
+                    onClick={handleProfileClick}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Profile</span>
+                  </button>
+                  <button
+                    onClick={handleSettingsClick}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Settings</span>
+                  </button>
+                  <div className="pt-2 border-t border-gray-100">
+                    <SignOutButton className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-md transition-colors" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="w-full block px-4 py-3 text-center text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="w-full block px-4 py-3 text-center bg-primary text-white hover:bg-primary-700 rounded-md transition-colors"
+                  >
+                    Sign Up
+                  </Link>
+                  <button
+                    onClick={handleGetStartedClick}
+                    className="w-full block px-4 py-3 text-center bg-accent text-white hover:bg-accent-dark rounded-md transition-colors mt-2"
+                  >
+                    Get Started Free
+                  </button>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

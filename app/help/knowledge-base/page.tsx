@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SiteHeader from "@/app/components/SiteHeader";
-import SidebarNavigation from "@/app/components/SidebarNav";
+import SidebarNav from "@/app/components/SidebarNav";
 import Link from 'next/link';
 
 // Article data
@@ -102,7 +102,7 @@ export default function KnowledgeBasePage() {
       <SiteHeader isLoggedIn={true} />
       
       <div className="fixed-layout">
-        <SidebarNavigation />
+        <SidebarNav />
         
         <main className="flex-grow overflow-y-auto">
           <div className="w-full p-6">
