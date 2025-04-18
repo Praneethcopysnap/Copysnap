@@ -9,8 +9,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiArrowLeft, FiPlus, FiEdit2, FiTrash2, FiShare2, 
   FiFileText, FiMessageSquare, FiAlertCircle, FiHelpCircle, 
-  FiInfo, FiClock, FiUser, FiUsers, FiSettings, FiCheck, FiRefreshCw
+  FiInfo, FiClock, FiUser, FiUsers, FiSettings, FiCheck, FiRefreshCw, FiX, FiCopy, FiSave
 } from 'react-icons/fi';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 // Define the content types for the workspace
 const contentTypes = [
@@ -115,7 +116,8 @@ export default function WorkspacePage() {
   const params = useParams();
   const router = useRouter();
   const workspaceId = params.id as string;
-  const { getWorkspaceById } = useWorkspaces();
+  const { getWorkspaceById, updateWorkspaceFigmaLink } = useWorkspaces();
+  const supabase = createClientComponentClient();
   
   // State for the workspace page
   const [activeTab, setActiveTab] = useState('cta');
@@ -165,11 +167,199 @@ export default function WorkspacePage() {
     }
   ]);
 
+  // New state for content creation
+  const [contentFormData, setContentFormData] = useState({
+    type: 'cta',
+    label: '',
+    context: '',
+    toneEmphasis: 'Balanced (match brand voice)',
+    generateMultiple: true
+  });
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [figmaLink, setFigmaLink] = useState('');
+  const [hasFigmaLink, setHasFigmaLink] = useState(false);
+  const [showFigmaLinkInput, setShowFigmaLinkInput] = useState(false);
+  const [generatedSuggestions, setGeneratedSuggestions] = useState([]);
+  const [showGenerationResults, setShowGenerationResults] = useState(false);
+  const [figmaScreenshot, setFigmaScreenshot] = useState('');
+  const [figmaLoading, setFigmaLoading] = useState(false);
+  const [figmaError, setFigmaError] = useState('');
+
+  // Helper function to try fetching a Figma preview
+  const fetchFigmaPreview = async (figmaLink) => {
+    if (!figmaLink) return null;
+    
+    try {
+      // Extract the file key from various Figma link formats
+      let fileKey = null;
+      let nodeId = null;
+      
+      // Match patterns for different Figma link types
+      // Standard file or design links
+      const fileMatch = figmaLink.match(/(?:file|design|proto)\/([a-zA-Z0-9]+)/i);
+      
+      // Extract node ID if present
+      const nodeMatch = figmaLink.match(/node-id=([^&\s]+)/i);
+      
+      if (fileMatch && fileMatch[1]) {
+        fileKey = fileMatch[1];
+        console.log('Extracted file key:', fileKey);
+      } else {
+        console.error('Could not extract Figma file key from link:', figmaLink);
+        return null;
+      }
+      
+      // Extract node ID if present
+      if (nodeMatch && nodeMatch[1]) {
+        nodeId = nodeMatch[1];
+        console.log('Extracted node ID:', nodeId);
+      }
+      
+      console.log('Fetching Figma preview for:', { fileKey, nodeId });
+      
+      // First try the public thumbnail URL as a fast fallback
+      const thumbnailUrl = `https://www.figma.com/file/${fileKey}/thumbnail`;
+      
+      // Call our API endpoint to get the image
+      try {
+        const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            // Return the public thumbnail as fallback
+            console.log('Using public thumbnail as fallback');
+            return thumbnailUrl;
+          }
+          
+          const errorData = await response.json();
+          console.error('Figma API error:', errorData);
+          return thumbnailUrl; // Return thumbnail as fallback
+        }
+        
+        const data = await response.json();
+        return data.imageUrl || thumbnailUrl;
+      } catch (error) {
+        console.error('Error fetching from API route:', error);
+        return thumbnailUrl; // Return thumbnail as fallback
+      }
+    } catch (error) {
+      console.error('Error fetching Figma preview:', error);
+      return null;
+    }
+  };
+
+  // Helper function to generate copy using the API
+  const generateCopy = async (formData, workspaceId) => {
+    try {
+      // Get the user's session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('You must be logged in to generate copy');
+      }
+      
+      // Create the request payload with Figma link data if available
+      const payload = {
+        workspaceId,
+        type: formData.type,
+        tone: formData.toneEmphasis.toLowerCase().includes('professional') ? 'professional' : 
+              formData.toneEmphasis.toLowerCase().includes('conversational') ? 'conversational' : 
+              formData.toneEmphasis.toLowerCase().includes('persuasive') ? 'persuasive' : 
+              formData.toneEmphasis.toLowerCase().includes('concise') ? 'concise' : 'balanced',
+        context: formData.context,
+        elementName: formData.label,
+        elementType: formData.type,
+        // Include Figma design link data if available
+        elementData: figmaLink ? { figmaLink } : undefined
+      };
+      
+      console.log('Sending copy generation request:', payload);
+      
+      // Make the API request with authentication
+      const response = await fetch('/api/generate-copy', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API response error:', errorData);
+        throw new Error(errorData.error || 'Failed to generate copy');
+      }
+      
+      const data = await response.json();
+      console.log('API response:', data);
+      
+      return data.suggestions || []; // Ensure it returns an array
+    } catch (error) {
+      console.error('Error generating copy:', error);
+      return []; // Return empty array on error
+    }
+  };
+
   // Type assertion after initialization to maintain type safety
   const typedSelectedItem = selectedItem as string | null;
   
   // Get workspace data from context
   const workspace = getWorkspaceById(workspaceId);
+
+  // Check if Figma link exists in workspace
+  useEffect(() => {
+    if (workspace && workspace.figmaLink) {
+      setFigmaLink(workspace.figmaLink);
+      setHasFigmaLink(true);
+    } else {
+      setHasFigmaLink(false);
+    }
+  }, [workspace]);
+
+  // Fetch Figma preview whenever figmaLink changes
+  useEffect(() => {
+    const loadFigmaPreview = async () => {
+      if (figmaLink) {
+        setFigmaLoading(true);
+        setFigmaError('');
+        try {
+          const previewUrl = await fetchFigmaPreview(figmaLink);
+          if (previewUrl) {
+            setFigmaScreenshot(previewUrl);
+          } else {
+            setFigmaError('Could not load Figma preview. The file may not be public or the link is invalid.');
+          }
+        } catch (error) {
+          console.error('Error in Figma preview loading:', error);
+          setFigmaError('Error loading Figma preview. Please make sure your Figma file is shared for viewing.');
+        } finally {
+          setFigmaLoading(false);
+        }
+      } else {
+        setFigmaScreenshot('');
+        setFigmaError('');
+      }
+    };
+
+    loadFigmaPreview();
+  }, [figmaLink]);
+
+  // Handle content form input changes
+  const handleContentFormChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+    setContentFormData({
+      ...contentFormData,
+      [name]: type === 'checkbox' ? checked : value
+    });
+  };
+
+  // Handle Figma link input
+  const handleFigmaLinkChange = (e: any) => {
+    setFigmaLink(e.target.value);
+    // Reset error when user changes the input
+    setFigmaError('');
+  };
 
   // Filter content items based on active tab
   const filteredContent = mockContentItems.filter(item => item.type === activeTab);
@@ -361,7 +551,11 @@ export default function WorkspacePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                     className="btn-primary flex items-center text-sm px-4 py-2 shadow-sm"
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={() => {
+                      setShowCreateModal(true);
+                      // Reset the screenshot when opening a new modal
+                      setFigmaScreenshot('');
+                    }}
                 >
                     <FiPlus className="mr-2" size={16} />
                     New Content
@@ -988,7 +1182,12 @@ export default function WorkspacePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Content Type
                   </label>
-                  <select className="input focus:ring-2 focus:ring-primary transition-all duration-200 w-full" value={activeTab}>
+                  <select 
+                    className="input focus:ring-2 focus:ring-primary transition-all duration-200 w-full"
+                    name="type"
+                    value={contentFormData.type}
+                    onChange={handleContentFormChange}
+                  >
                     {contentTypes.filter(type => type.id !== 'brand').map(type => (
                       <option key={type.id} value={type.id}>{type.name}</option>
                     ))}
@@ -1001,6 +1200,9 @@ export default function WorkspacePage() {
                   </label>
                   <input
                     type="text"
+                    name="label"
+                    value={contentFormData.label}
+                    onChange={handleContentFormChange}
                     className="input focus:ring-2 focus:ring-primary transition-all duration-200 w-full"
                     placeholder="E.g., Primary CTA Button"
                   />
@@ -1011,11 +1213,58 @@ export default function WorkspacePage() {
                     Context
                   </label>
                   <textarea
+                    name="context"
+                    value={contentFormData.context}
+                    onChange={handleContentFormChange}
                     className="input focus:ring-2 focus:ring-primary transition-all duration-200 w-full"
                     placeholder="Describe where and how this copy will be used..."
                     rows={3}
                   ></textarea>
                 </div>
+                
+                {/* Figma Link Section - Show when missing or user wants to add/edit */}
+                {(!hasFigmaLink || showFigmaLinkInput) && (
+                  <div className="border rounded-lg p-3 bg-blue-50 space-y-3">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <h3 className="text-sm font-medium text-blue-800">Add Figma Design Link</h3>
+                        <p className="text-xs text-blue-700 mb-2">
+                          Adding a Figma link helps generate more contextual copy
+                        </p>
+                        <input
+                          type="text"
+                          value={figmaLink}
+                          onChange={handleFigmaLinkChange}
+                          className="input text-sm py-1.5 w-full bg-white"
+                          placeholder="Paste your Figma file URL here"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {hasFigmaLink && !showFigmaLinkInput && (
+                  <div className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded border">
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 015.656 0l4 4a4 4 0 01-5.656 5.656l-1.102-1.101" />
+                      </svg>
+                      <span className="text-gray-700">Figma design linked</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-xs text-primary font-medium hover:text-primary-dark"
+                      onClick={() => setShowFigmaLinkInput(true)}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
                 
                 <div className="border rounded-lg p-3 bg-gray-50">
                   <div className="flex items-start mb-2">
@@ -1032,14 +1281,25 @@ export default function WorkspacePage() {
                   <div className="ml-8 space-y-3">
                     <div>
                       <label className="flex items-center text-sm">
-                        <input type="checkbox" className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" defaultChecked />
+                        <input 
+                          type="checkbox" 
+                          name="generateMultiple"
+                          checked={contentFormData.generateMultiple}
+                          onChange={handleContentFormChange}
+                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" 
+                        />
                         <span className="ml-2 text-gray-700">Generate multiple variations</span>
                       </label>
                     </div>
                     
                     <div>
                       <label className="block text-sm text-gray-700 mb-1">Tone emphasis</label>
-                      <select className="input text-sm py-1 w-full">
+                      <select 
+                        className="input text-sm py-1 w-full"
+                        name="toneEmphasis"
+                        value={contentFormData.toneEmphasis}
+                        onChange={handleContentFormChange}
+                      >
                         <option>Balanced (match brand voice)</option>
                         <option>More conversational</option>
                         <option>More professional</option>
@@ -1083,43 +1343,130 @@ export default function WorkspacePage() {
                   </motion.button>
                   <motion.button 
                     type="button" 
-                    className="btn-primary flex items-center"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      // In a real app, this would send a request to generate content
-                      const newItemId = (mockContentItems.length + 1).toString();
-                      const newContentItem = {
-                        id: newItemId,
-                        type: activeTab,
-                        label: "New Generated Content",
-                        content: "This is a placeholder for AI generated content based on your inputs and brand voice.",
-                        context: "Generated via workspace content tool",
-                        lastEdited: "Just now",
-                        editor: "You"
-                      };
+                    className={`btn-primary flex items-center ${isGenerating ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    whileHover={{ scale: isGenerating ? 1 : 1.05 }}
+                    whileTap={{ scale: isGenerating ? 1 : 0.95 }}
+                    disabled={isGenerating}
+                    onClick={async () => {
+                      if (isGenerating) return;
                       
-                      // Add notification
-                      const newNotification = {
-                        id: (notifications.length + 1).toString(),
-                        type: 'update',
-                        message: 'New content was created successfully',
-                        time: 'Just now',
-                        read: false
-                      };
-                      setNotifications([newNotification, ...notifications]);
+                      // Basic validation
+                      if (!contentFormData.label.trim()) {
+                        alert("Please enter a label for your content");
+                        return;
+                      }
                       
-                      // Close the modal
-                      setShowCreateModal(false);
+                      setIsGenerating(true);
                       
-                      // Show a temporary success message
-                      alert("Content generated successfully!");
+                      try {
+                        // Update the Figma link if it has changed or was newly added
+                        if ((!hasFigmaLink || showFigmaLinkInput) && figmaLink.trim()) {
+                          try {
+                            await updateWorkspaceFigmaLink(workspaceId, figmaLink.trim());
+                            setHasFigmaLink(true);
+                            setShowFigmaLinkInput(false);
+                          } catch (error) {
+                            console.error("Error updating Figma link:", error);
+                            // Continue with generation even if Figma link update fails
+                          }
+                        }
+                        
+                        try {
+                          // Make a real API call to generate copy
+                          const suggestions = await generateCopy(contentFormData, workspaceId);
+                          
+                          // Store the generated suggestions
+                          setGeneratedSuggestions(suggestions);
+                          
+                          // Try to fetch Figma preview if available
+                          if (figmaLink) {
+                            const previewUrl = await fetchFigmaPreview(figmaLink);
+                            if (previewUrl) {
+                              setFigmaScreenshot(previewUrl);
+                            }
+                          }
+                          
+                          // Add notification
+                          const newNotification = {
+                            id: (notifications.length + 1).toString(),
+                            type: 'update',
+                            message: 'New content was created successfully',
+                            time: 'Just now',
+                            read: false
+                          };
+                          setNotifications([newNotification, ...notifications]);
+                          
+                          // Show generation results panel instead of alert
+                          setShowGenerationResults(true);
+                          
+                          // Close the modal
+                          setShowCreateModal(false);
+                        } catch (error) {
+                          console.error("API error:", error);
+                          
+                          // Fall back to mock data on API error
+                          alert("Could not generate copy through API. Using mock data instead.");
+                          
+                          // Mock response with placeholder variations
+                          const variations = [
+                            "Get Started Now",
+                            "Begin Your Journey",
+                            "Start for Free",
+                            "Try it Today",
+                            "Launch Your Experience"
+                          ];
+                          
+                          // Store the mock suggestions
+                          setGeneratedSuggestions(variations);
+                          
+                          // Try to fetch Figma preview if available
+                          if (figmaLink) {
+                            const previewUrl = await fetchFigmaPreview(figmaLink);
+                            if (previewUrl) {
+                              setFigmaScreenshot(previewUrl);
+                            }
+                          }
+                          
+                          // Add notification
+                          const newNotification = {
+                            id: (notifications.length + 1).toString(),
+                            type: 'update',
+                            message: 'New content was created with mock data',
+                            time: 'Just now',
+                            read: false
+                          };
+                          setNotifications([newNotification, ...notifications]);
+                          
+                          // Show results panel
+                          setShowGenerationResults(true);
+                          
+                          // Close the modal
+                          setShowCreateModal(false);
+                        }
+                      } catch (error) {
+                        console.error("Error generating content:", error);
+                        alert("Error generating content. Please try again.");
+                      } finally {
+                        setIsGenerating(false);
+                      }
                     }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Generate Copy
+                    {isGenerating ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate Copy
+                      </>
+                    )}
                   </motion.button>
                 </div>
               </form>
@@ -1335,6 +1682,164 @@ export default function WorkspacePage() {
         itemType={shareItemType}
         itemId={shareItemId}
         workspaceName={workspace?.name || ''}
+      />
+      
+      {/* Generation Results Side Panel */}
+      <AnimatePresence>
+        {showGenerationResults && generatedSuggestions.length > 0 && (
+          <motion.div
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed inset-y-0 right-0 w-2/5 bg-white border-l border-gray-200 shadow-xl z-50 overflow-auto flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold">Generated Copy Results</h2>
+              <button 
+                onClick={() => setShowGenerationResults(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-auto">
+              {/* Figma Design Preview */}
+              {figmaScreenshot ? (
+                <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Figma Design</h3>
+                  <div className="mt-1 overflow-hidden rounded-md">
+                    <img 
+                      src={figmaScreenshot}
+                      alt="Figma Design Preview"
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                </div>
+              ) : figmaLoading ? (
+                <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Figma Design</h3>
+                  <div className="flex items-center justify-center h-40 bg-gray-50 rounded">
+                    <div className="flex flex-col items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="text-sm text-gray-500 mt-2">Loading Figma preview...</p>
+                    </div>
+                  </div>
+                </div>
+              ) : figmaError ? (
+                <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Figma Design</h3>
+                  <div className="p-4 bg-red-50 rounded border border-red-100">
+                    <p className="text-sm text-red-600">{figmaError}</p>
+                    <div className="text-xs text-gray-500 mt-2 space-y-1">
+                      <p>To fix this issue:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Make sure your Figma file is shared with "Anyone with the link" permission</li>
+                        <li>Copy the link directly from the Share button in Figma</li>
+                        <li>Try using the main file link rather than a specific frame</li>
+                        <li>Use the format: https://www.figma.com/file/FILEID/FILENAME</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Figma Design</h3>
+                  <div className="flex flex-col items-center justify-center py-6 bg-gray-50 rounded text-center">
+                    <p className="text-gray-500">No Figma preview available</p>
+                    <p className="text-xs text-gray-400 mt-1">Connect Figma to see design context</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Generated Suggestions */}
+              <div className="p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Generated Suggestions</h3>
+                <div className="space-y-3">
+                  {generatedSuggestions.map((suggestion, index) => (
+                    <div 
+                      key={index}
+                      className="p-3 bg-white border border-gray-200 rounded-md hover:border-primary hover:shadow-sm transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium">{suggestion}</p>
+                        <div className="flex items-center space-x-2">
+                          <button 
+                            className="p-1.5 text-gray-500 hover:text-primary rounded hover:bg-gray-100"
+                            title="Copy to clipboard"
+                            onClick={() => {
+                              navigator.clipboard.writeText(suggestion);
+                              alert('Copied to clipboard!');
+                            }}
+                          >
+                            <FiCopy size={16} />
+                          </button>
+                          <button 
+                            className="p-1.5 text-gray-500 hover:text-green-600 rounded hover:bg-gray-100"
+                            title="Use this suggestion"
+                          >
+                            <FiCheck size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-between">
+                <button
+                  className="btn-secondary text-sm px-3 py-1.5"
+                  onClick={() => setShowGenerationResults(false)}
+                >
+                  Close
+                </button>
+                <div className="flex space-x-2">
+                  <button
+                    className="btn-outline text-sm px-3 py-1.5 border-primary text-primary"
+                    onClick={() => {
+                      // In a real app, you'd regenerate with different params
+                      alert('Regenerate functionality would be implemented here');
+                    }}
+                  >
+                    <FiRefreshCw size={14} className="mr-1.5" />
+                    Regenerate
+                  </button>
+                  <button
+                    className="btn-primary text-sm px-3 py-1.5"
+                    onClick={() => {
+                      // In a real app, you'd save this to history
+                      alert('Save to history functionality would be implemented here');
+                      setShowGenerationResults(false);
+                    }}
+                  >
+                    <FiSave size={14} className="mr-1.5" />
+                    Save to History
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Notifications Dropdown */}
+      <NotificationsDropdown
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        notifications={notifications}
+        onMarkAsRead={(id) => {
+          if (id === 'all') {
+            setNotifications(notifications.map(n => ({ ...n, read: true })));
+          } else {
+            setNotifications(notifications.map(n => 
+              n.id === id ? { ...n, read: true } : n
+            ));
+          }
+        }}
       />
                 </div>
   );
@@ -1585,3 +2090,4 @@ function NotificationsDropdown({ isOpen, onClose, notifications, onMarkAsRead })
     </AnimatePresence>
   );
 } 
+
