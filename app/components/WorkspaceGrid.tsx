@@ -125,8 +125,8 @@ const WorkspaceGrid = ({ workspaces, onCreateWorkspace, loading = false }: Works
           const toneValue = parseInt(workspace.tone);
           const styleValue = parseInt(workspace.style);
           
-          let toneLabel = toneValue < 40 ? 'Friendly' : toneValue > 70 ? 'Formal' : 'Balanced';
-          let styleLabel = styleValue < 40 ? 'Brief' : styleValue > 70 ? 'Descriptive' : 'Balanced';
+          const toneLabel = toneValue < 40 ? 'Friendly' : toneValue > 70 ? 'Formal' : 'Balanced';
+          const styleLabel = styleValue < 40 ? 'Brief' : styleValue > 70 ? 'Descriptive' : 'Balanced';
           
           toneDisplay = `${toneLabel} | ${styleLabel}`;
         }
