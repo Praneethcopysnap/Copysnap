@@ -72,9 +72,10 @@ declare module 'app/components/Signup_Form' {
   export default Signup_Form;
 }
 
+// Rename to avoid conflict with the actual component file
 declare module 'app/components/Admin_Stats' {
-  const Admin_Stats: any;
-  export default Admin_Stats;
+  const AdminStatsComponent: any;
+  export default AdminStatsComponent;
 }
 
 declare module 'app/components/Admin_UserTable' {
