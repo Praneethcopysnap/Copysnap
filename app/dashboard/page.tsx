@@ -448,13 +448,13 @@ export default function Dashboard() {
                   <div className="avatar-neon h-14 w-14 flex-shrink-0">
                     {profileData?.full_name ? (
                       <span className="text-lg font-semibold text-white">
-                        {profileData.full_name.split(' ').map(n => n[0]).join('')}
+                        {profileData.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
                       </span>
                     ) : (
                       <FiUser size={24} className="text-white" />
                     )}
                   </div>
-                  <div>
+                <div>
                     <h1 className="text-2xl font-bold text-gray-800">
                       Hi {userName} <span className="wave inline-block animate-pulse">👋</span>
                     </h1>
@@ -487,8 +487,8 @@ export default function Dashboard() {
               {/* Always show metrics even if they're not loaded yet */}
               {(metrics && metrics.length > 0) ? (
                 metrics.map((metric: SummaryMetric, index) => (
-                  <div 
-                    key={metric.title}
+                <div 
+                  key={metric.title}
                     className={`stat-card-2025 ${
                       index === 0 ? 'primary' : 
                       index === 1 ? 'success' : 
@@ -497,28 +497,28 @@ export default function Dashboard() {
                     } group`}
                   >
                     <div className="tooltip flex items-center">
-                      <div className={`rounded-full p-3 mr-4 ${metric.color}`}>
+                  <div className={`rounded-full p-3 mr-4 ${metric.color}`}>
                         {metric.title === 'Active Projects' ? <FiFolder size={20} /> :
                           metric.title === 'Weekly Words' ? <FiFileText size={20} /> :
                           metric.title === 'Total Generations' ? <FiUser size={20} /> :
                           <FiCheckCircle size={20} />}
-                      </div>
+                  </div>
                       <span className="tooltip-text">
                         {metric.title === 'Active Projects' ? 'Number of workspaces you have created' :
                           metric.title === 'Weekly Words' ? 'Words generated in the last 7 days' :
                           metric.title === 'Total Generations' ? 'Total AI-generated text outputs' :
                           'Words available in your current plan'}
                       </span>
-                      <div>
-                        <p className="text-sm text-gray-600">{metric.title}</p>
-                        <div className="flex items-center">
+                  <div>
+                    <p className="text-sm text-gray-600">{metric.title}</p>
+                    <div className="flex items-center">
                           <span className="text-xl font-bold count-up">{metric.value}</span>
                           <span className={`ml-2 text-xs font-medium ${metric.trend === 'up' ? 'text-green-500' : metric.trend === 'down' ? 'text-red-500' : 'text-gray-500'}`}>
-                            {metric.change}
-                          </span>
-                        </div>
-                      </div>
+                        {metric.change}
+                      </span>
                     </div>
+                  </div>
+                </div>
                   </div>
                 ))
               ) : (
@@ -590,15 +590,15 @@ export default function Dashboard() {
             
             {/* Call to Action Banner */}
             <div className="mb-8">
-              <div className="glass-card-gradient gradient-bg-accent">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between p-6 gap-4 relative z-10">
+              <div className="glass-card-gradient p-6 bg-white">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-semibold mb-2 text-gray-800">Get Started with CopySnap</h2>
-                    <p className="mb-0 text-gray-700">Create a workspace to start generating context-aware UX copy for your product.</p>
+                    <p className="text-gray-600">Create a workspace to start generating context-aware UX copy for your product.</p>
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <motion.button 
-                      className="bg-white text-accent font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:shadow-xl"
+                      className="bg-white text-primary font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:shadow-xl border border-gray-200"
                       onClick={() => router.push('/workspaces')}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
@@ -607,7 +607,7 @@ export default function Dashboard() {
                       Create Workspace
                     </motion.button>
                     <motion.button 
-                      className="bg-white/20 text-white border border-white/30 font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:bg-white/30"
+                      className="bg-primary/80 text-white border border-primary/50 font-medium py-2 px-4 rounded-md shadow-lg flex items-center gap-2 hover:bg-primary/90"
                       onClick={handleInstallFigmaPlugin}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
@@ -623,8 +623,6 @@ export default function Dashboard() {
                     </motion.button>
                   </div>
                 </div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 z-0"></div>
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full -ml-20 -mb-20 z-0"></div>
               </div>
             </div>
             
@@ -632,57 +630,57 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Workspaces */}
               <div className="lg:col-span-2">
-                <div className="glass-card-gradient h-full flex flex-col">
-                  <div className="px-6 py-4 border-b border-white/10">
+                <div className={`glass-card-gradient h-full flex flex-col ${workspaces.length === 0 ? 'max-h-[220px]' : ''}`}>
+                  <div className="px-4 py-3 border-b border-white/10">
                     <div className="flex justify-between items-center">
-                      <h2 className="text-lg font-semibold">Recent Workspaces</h2>
-                      <Link href="/workspaces" className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
+                      <h2 className="text-base font-semibold text-gray-800">Recent Workspaces</h2>
+                      <Link href="/workspaces" className="text-primary text-xs font-medium flex items-center gap-1 hover:underline">
                         View All
-                        <FiArrowRight size={14} />
+                        <FiArrowRight size={12} />
                       </Link>
                     </div>
                   </div>
                 
                   {workspacesLoading ? (
-                    <div className="p-6 flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                    <div className="p-4 flex justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
                     </div>
                   ) : workspaces.length === 0 ? (
-                    <div className="empty-state p-6 text-center flex-grow empty-state-animation">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                        <FiFolder size={28} className="text-primary" />
+                    <div className="empty-state p-3 text-center flex-grow empty-state-animation">
+                      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 mb-2">
+                        <FiFolder size={16} className="text-primary" />
                       </div>
-                      <h3 className="text-lg font-medium mb-2">No workspaces yet</h3>
-                      <p className="text-gray-500 mb-4">Create your first workspace to get started</p>
+                      <h3 className="text-sm font-medium mb-1">No workspaces yet</h3>
+                      <p className="text-gray-500 text-xs mb-2">Create your first workspace to get started</p>
                       <motion.button 
-                        className="btn-primary flex items-center gap-2 mx-auto"
+                        className="btn-primary flex items-center gap-1 mx-auto text-xs py-1 px-2"
                         onClick={() => router.push('/workspaces')}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <FiPlus size={16} />
+                        <FiPlus size={12} />
                         Create Workspace
                       </motion.button>
                     </div>
                   ) : (
                     <div className="flex-grow">
-                      {filteredWorkspaces.map((workspace: Workspace) => (
+                      {filteredWorkspaces.slice(0, 3).map((workspace: Workspace) => (
                         <motion.div 
                           key={workspace.id}
                           whileHover={{ backgroundColor: 'rgba(249, 250, 251, 0.5)' }}
                         >
                           <Link 
                             href={`/workspaces/${workspace.id}`}
-                            className="block p-6 border-b border-white/10 last:border-b-0 hover:bg-white/20 transition-all duration-200"
+                            className="block p-3 border-b border-white/10 last:border-b-0 hover:bg-white/20 transition-all duration-200"
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex-grow">
-                                <h3 className="font-medium">{workspace.name}</h3>
-                                <p className="text-sm text-gray-500 mt-1 line-clamp-1">{workspace.description || 'No description'}</p>
-                                <div className="mt-2 flex gap-2">
+                                <h3 className="font-medium text-sm">{workspace.name}</h3>
+                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{workspace.description || 'No description'}</p>
+                                <div className="mt-1 flex gap-1.5">
                                   {workspace.figmaLink && (
-                                    <span className="pill-badge-glow primary">
-                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="#4F46E5">
+                                    <span className="pill-badge-glow primary text-xs py-0.5 px-1.5">
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="10" height="10" fill="#4F46E5">
                                         <path d="M8 24a4 4 0 0 0 4-4v-4H8a4 4 0 0 0 0 8Z"/>
                                         <path d="M8 16h4V8H8a4 4 0 0 0 0 8Z" style={{ opacity: 0.9 }}/>
                                         <path d="M8 8h4V0H8a4 4 0 0 0 0 8Z" style={{ opacity: 0.8 }}/>
@@ -693,20 +691,17 @@ export default function Dashboard() {
                                     </span>
                                   )}
                                   {workspace.brandVoiceFile && (
-                                    <span className="pill-badge-glow success">
-                                      <FiFileText size={12} className="text-success-dark" />
+                                    <span className="pill-badge-glow success text-xs py-0.5 px-1.5">
+                                      <FiFileText size={10} className="text-success-dark" />
                                       Brand Voice
                                     </span>
                                   )}
                                 </div>
                               </div>
                               <div className="flex flex-col items-end">
-                                <div className="pill-badge-glow accent">
-                                  <FiClock size={12} className="text-accent-dark" />
+                                <div className="pill-badge-glow accent text-xs py-0.5 px-1.5">
+                                  <FiClock size={10} className="text-accent-dark" />
                                   Updated {workspace.lastEdited}
-                                </div>
-                                <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <FiArrowRight size={16} className="text-primary" />
                                 </div>
                               </div>
                             </div>
@@ -715,10 +710,10 @@ export default function Dashboard() {
                       ))}
                       
                       {workspaces.length > 3 && (
-                        <div className="p-4 text-center border-t border-white/10">
-                          <Link href="/workspaces" className="text-primary text-sm hover:underline inline-flex items-center gap-1">
+                        <div className="p-2 text-center border-t border-white/10">
+                          <Link href="/workspaces" className="text-primary text-xs hover:underline inline-flex items-center gap-1">
                             View all {workspaces.length} workspaces
-                            <FiArrowRight size={14} />
+                            <FiArrowRight size={12} />
                           </Link>
                         </div>
                       )}
@@ -732,9 +727,9 @@ export default function Dashboard() {
                 {/* Recent Activity */}
                 <div className="glass-card-gradient h-full flex flex-col">
                   <div className="px-6 py-4 border-b border-white/10">
-                    <h2 className="text-lg font-semibold">Recent Activity</h2>
-                  </div>
-                  
+                    <h2 className="text-lg font-semibold text-gray-800">Recent Activity</h2>
+                    </div>
+                    
                   <div className="p-6 flex-grow">
                     {activities.length === 0 ? (
                       <div className="empty-state text-center py-6 empty-state-animation">
@@ -774,8 +769,8 @@ export default function Dashboard() {
                                     {activity.workspace_name}
                                   </span>
                                 )}
-                              </div>
-                            </div>
+                      </div>
+                    </div>
                           </div>
                         ))}
                       </div>
@@ -786,7 +781,7 @@ export default function Dashboard() {
                 {/* Tips and Updates */}
                 <div className="glass-card-gradient">
                   <div className="px-6 py-4 border-b border-white/10">
-                    <h2 className="text-lg font-semibold">Tips & Updates</h2>
+                    <h2 className="text-lg font-semibold text-gray-800">Tips & Updates</h2>
                   </div>
 
                   <div className="p-4">
@@ -801,7 +796,7 @@ export default function Dashboard() {
                             {tip.icon}
                           </div>
                           <div>
-                            <h3 className="font-medium text-sm">{tip.title}</h3>
+                            <h3 className="font-medium text-sm text-gray-800">{tip.title}</h3>
                             <p className="text-sm text-gray-600 mt-1">{tip.description}</p>
                             <Link 
                               href={tip.link} 
@@ -814,6 +809,90 @@ export default function Dashboard() {
                         </div>
                       </motion.div>
                     ))}
+                  </div>
+                </div>
+                
+                {/* Voice Consistency Section - Added below Tips & Updates */}
+                <div className="glass-card-gradient mt-6 bg-white">
+                  <div className="px-6 py-4 border-b border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-800">Voice Consistency</h2>
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="bg-gray-50 p-4 rounded-md">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="font-medium text-sm text-gray-800">Overall Match</p>
+                        <p className="text-green-600 font-medium flex items-center">
+                          <span className="text-lg">91%</span>
+                          <svg className="h-4 w-4 text-green-500 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </p>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div className="bg-green-500 h-3 rounded-full relative" style={{ width: '91%' }}>
+                          <div className="animate-pulse absolute -right-1 -top-1 h-5 w-5 rounded-full bg-white border-2 border-green-500"></div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2 italic">Strong brand voice consistency across workspaces</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm mt-3">
+                      <div className="p-3 bg-gray-50 rounded-md">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-gray-800 font-medium">CTAs & Buttons</p>
+                          <div className="relative h-8 w-8">
+                            <svg className="h-8 w-8 text-gray-300" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="18" cy="18" r="16" stroke="currentColor" strokeWidth="4"/>
+                            </svg>
+                            <svg className="absolute inset-0 h-8 w-8 text-green-500" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                strokeDasharray="100, 100"
+                                strokeDashoffset="5"
+                              />
+                            </svg>
+                            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">95%</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 bg-gray-50 rounded-md">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-gray-800 font-medium">Error Messages</p>
+                          <div className="relative h-8 w-8">
+                            <svg className="h-8 w-8 text-gray-300" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="18" cy="18" r="16" stroke="currentColor" strokeWidth="4"/>
+                            </svg>
+                            <svg className="absolute inset-0 h-8 w-8 text-yellow-500" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                strokeDasharray="100, 100"
+                                strokeDashoffset="16"
+                              />
+                            </svg>
+                            <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold">84%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end mt-3">
+                      <motion.button 
+                        className="text-primary text-sm font-medium flex items-center hover:underline"
+                        whileHover={{ x: 2 }}
+                        onClick={() => router.push('/brand-voice')}
+                      >
+                        View detailed analysis
+                        <FiArrowRight size={14} className="ml-1" />
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
               </div>

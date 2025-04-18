@@ -14,4 +14,5 @@ export interface Workspace {
   style?: string;
   voice?: string;
   personaDescription?: string;
+  screens?: any;
 } 

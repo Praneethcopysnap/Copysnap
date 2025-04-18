@@ -19,38 +19,6 @@
   --color-warning: 245, 158, 11; /* Amber-500 */
   --color-error: 239, 68, 68; /* Red-500 */
   --color-info: 14, 165, 233; /* Sky-500 */
-
-  /* Card and surface colors */
-  --card-background: 255, 255, 255;
-  --card-border: 229, 231, 235;
-  --surface-background: 255, 255, 255;
-  
-  /* Neutral colors */
-  --color-gray-50: 249, 250, 251;
-  --color-gray-100: 243, 244, 246;
-  --color-gray-200: 229, 231, 235;
-  --color-gray-300: 209, 213, 219;
-  --color-gray-400: 156, 163, 175;
-  --color-gray-500: 107, 114, 128;
-  --color-gray-600: 75, 85, 99;
-  --color-gray-700: 55, 65, 81;
-  --color-gray-800: 31, 41, 55;
-  --color-gray-900: 17, 24, 39;
-}
-
-.dark {
-  --foreground-rgb: 229, 231, 235;
-  --background-start-rgb: 17, 24, 39;
-  --background-end-rgb: 31, 41, 55;
-
-  /* Card and surface colors in dark mode */
-  --card-background: 31, 41, 55;
-  --card-border: 55, 65, 81;
-  --surface-background: 17, 24, 39;
-  
-  /* Adjust scrollbar for dark mode */
-  --scrollbar-track: 55, 65, 81;
-  --scrollbar-thumb: 107, 114, 128;
 }
 
 body {
@@ -76,9 +44,9 @@ body {
 }
 
 .glass-card {
-  background: rgba(var(--card-background), 0.7);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(var(--card-background), 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .fixed-layout {
@@ -99,7 +67,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(var(--scrollbar-track, 241, 241, 241));
+  background: #f1f1f1;
   border-radius: 4px;
 }
 
@@ -118,7 +86,7 @@ body {
   }
   
   .btn-secondary {
-    @apply bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 hover:border-primary-300;
+    @apply bg-white text-gray-800 border border-gray-300 hover:bg-gray-50 font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 hover:border-primary-300;
   }
   
   .btn-accent {
@@ -130,21 +98,21 @@ body {
   }
   
   .card {
-    @apply bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300;
+    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300;
   }
   
   /* 2025 Design Trend: Modern Card with Glassmorphism */
   .glass-card {
-    @apply backdrop-blur-md bg-white/80 dark:bg-gray-800/80 p-6 rounded-xl shadow-lg border border-white/20 dark:border-gray-700/20 hover:shadow-xl transition-all duration-300;
+    @apply backdrop-blur-md bg-white/80 p-6 rounded-xl shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300;
   }
   
   /* 2025 Design Trend: Stat Card with Micro-interactions */
   .stat-card {
-    @apply relative p-5 rounded-xl border border-gray-100 dark:border-gray-700 bg-gradient-to-br from-white dark:from-gray-800 to-gray-50 dark:to-gray-900 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1;
+    @apply relative p-5 rounded-xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1;
   }
   
   .stat-card::after {
-    @apply absolute inset-0 rounded-xl border border-white/40 dark:border-gray-600/40 opacity-0 transition-opacity duration-300 content-[''];
+    @apply absolute inset-0 rounded-xl border border-white/40 opacity-0 transition-opacity duration-300 content-[''];
     box-shadow: 0 0 15px 2px rgba(var(--color-primary), 0.1);
   }
   
@@ -153,15 +121,15 @@ body {
   }
   
   .input {
-    @apply border border-gray-300 dark:border-gray-700 rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+    @apply border border-gray-300 rounded-lg p-2.5 w-full focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent shadow-sm;
   }
   
   .sidebar-link {
-    @apply flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-primary rounded-md transition-colors duration-200;
+    @apply flex items-center px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-primary rounded-md transition-colors duration-200;
   }
   
   .sidebar-link.active {
-    @apply bg-primary-50 dark:bg-primary-900/50 text-primary dark:text-primary-300 border-l-2 border-primary;
+    @apply bg-primary-50 text-primary border-l-2 border-primary;
   }
   
   .badge {
@@ -169,28 +137,28 @@ body {
   }
   
   .badge-success {
-    @apply bg-success-light text-success-dark dark:bg-success-dark/30 dark:text-success-light;
+    @apply bg-success-light text-success-dark;
   }
   
   .badge-warning {
-    @apply bg-warning-light text-warning-dark dark:bg-warning-dark/30 dark:text-warning-light;
+    @apply bg-warning-light text-warning-dark;
   }
   
   .badge-error {
-    @apply bg-error-light text-error-dark dark:bg-error-dark/30 dark:text-error-light;
+    @apply bg-error-light text-error-dark;
   }
   
   .badge-info {
-    @apply bg-info-light text-info-dark dark:bg-info-dark/30 dark:text-info-light;
+    @apply bg-info-light text-info-dark;
   }
   
   .badge-accent {
-    @apply bg-accent-light text-accent-dark dark:bg-accent-dark/30 dark:text-accent-light;
+    @apply bg-accent-light text-accent-dark;
   }
   
   /* 2025 Design Trend: Modern Pill Badge */
   .pill-badge {
-    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm;
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-700 border border-gray-200 shadow-sm;
   }
   
   /* 2025 Design Trend: Count-up Animation */
@@ -212,21 +180,38 @@ body {
   
   /* Modern section styles */
   .section-title {
-    @apply text-xl font-bold text-gray-800 dark:text-gray-100 mb-4;
+    @apply text-xl font-bold text-gray-800 mb-4;
   }
   
   .section-subtitle {
-    @apply text-sm text-gray-500 dark:text-gray-400 mb-6;
+    @apply text-sm text-gray-500 mb-6;
   }
   
   /* Empty state illustration container */
   .empty-state {
-    @apply flex flex-col items-center justify-center p-8 rounded-lg bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700;
+    @apply flex flex-col items-center justify-center p-8 rounded-lg bg-gray-50/50 border border-gray-100;
   }
   
   /* Tooltip styles */
   .tooltip {
     @apply relative inline-block;
+  }
+  
+  .tooltip-text {
+    @apply invisible absolute z-10 w-48 bg-gray-800 text-white text-xs rounded-md p-2 
+           opacity-0 transition-opacity duration-300;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .tooltip:hover .tooltip-text {
+    @apply visible opacity-100;
+  }
+  
+  /* Dashboard image avatar */
+  .avatar {
+    @apply inline-flex items-center justify-center rounded-full bg-primary-100 text-primary-700 overflow-hidden;
   }
 }
 
@@ -236,7 +221,8 @@ body {
 }
 
 .gradient-bg-accent {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.8) 0%, rgba(244, 114, 182, 0.7) 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  color: white;
 }
 
 .gradient-bg-success {
@@ -256,20 +242,16 @@ body {
 .glass-card-gradient::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 0.75rem; /* matches rounded-xl */
-  padding: 1px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
   background: linear-gradient(
-    to right bottom, 
-    rgba(255, 255, 255, 0.6), 
-    rgba(var(--color-primary), 0.3), 
-    rgba(var(--color-accent), 0.3)
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
 }
 
 /* 2025 Design Trend: Animated Gradient Ornaments */
@@ -429,27 +411,58 @@ body {
 
 /* 2025 Design Trend: Neon Avatar */
 .avatar-neon {
-  @apply inline-flex items-center justify-center rounded-full overflow-hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  overflow: hidden;
   position: relative;
-  background: linear-gradient(135deg, rgba(var(--color-primary), 0.2), rgba(var(--color-accent), 0.2));
-  box-shadow: 0 0 15px rgba(var(--color-primary), 0.3);
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  box-shadow: 
+    0 0 15px rgba(99, 102, 241, 0.5),
+    0 0 30px rgba(67, 56, 202, 0.2);
+  transition: all 0.3s ease;
 }
 
-.avatar-neon::after {
+.avatar-neon::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+  z-index: -1;
   border-radius: 9999px;
-  padding: 2px;
-  background: linear-gradient(
-    to right bottom, 
-    rgba(var(--color-primary), 0.8), 
-    rgba(var(--color-accent), 0.8)
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  filter: blur(10px);
+  opacity: 0.7;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.01);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Profile avatar in the dashboard */
+div.avatar-neon {
+  width: 56px;
+  height: 56px;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
 /* Modern UI components for 2025 trends */
@@ -468,7 +481,7 @@ body {
 }
 
 .gradient-bg-accent {
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
   color: white;
 }
 
@@ -518,20 +531,6 @@ body {
   opacity: 0.1;
   filter: blur(40px);
   z-index: 0;
-}
-
-/* Avatar with neon glow */
-.avatar-neon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    0 0 15px rgba(79, 70, 229, 0.5),
-    0 0 30px rgba(79, 70, 229, 0.2);
 }
 
 /* Glowing pill badge */

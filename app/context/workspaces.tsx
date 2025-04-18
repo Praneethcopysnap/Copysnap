@@ -23,6 +23,7 @@ interface WorkspacesContextType {
     }
   ) => Promise<Workspace>;
   getWorkspaceById: (id: string) => Workspace | undefined;
+  updateWorkspaceFigmaLink: (workspaceId: string, figmaLink: string) => Promise<any>;
 }
 
 // Define props interface for WorkspacesProvider
@@ -362,6 +363,61 @@ export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
     }
   };
 
+  // Function to update a workspace's Figma link
+  const updateWorkspaceFigmaLink = async (workspaceId: string, figmaLink: string) => {
+    try {
+      console.log('Updating Figma link for workspace:', workspaceId);
+      
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('User auth error:', userError);
+        throw new Error(userError.message);
+      }
+
+      if (!user) {
+        console.error('No authenticated user found');
+        throw new Error('You must be logged in to update a workspace');
+      }
+
+      // Update the workspace in database
+      const { data: updatedWorkspace, error: updateError } = await supabase
+        .from('workspaces')
+        .update({ 
+          figma_link: figmaLink,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', workspaceId)
+        .eq('owner_id', user.id)
+        .select()
+        .single();
+      
+      if (updateError) {
+        console.error('Error updating workspace:', updateError);
+        throw new Error(updateError.message);
+      }
+      
+      // Update the local state
+      setWorkspaces(prevWorkspaces => 
+        prevWorkspaces.map(workspace => 
+          workspace.id === workspaceId 
+            ? { 
+                ...workspace, 
+                figmaLink: figmaLink,
+                lastEdited: 'Just now'
+              } 
+            : workspace
+        )
+      );
+      
+      return updatedWorkspace;
+    } catch (error) {
+      console.error('Error in updateWorkspaceFigmaLink:', error);
+      throw error;
+    }
+  };
+
   const getWorkspaceById = (id: string) => {
     return workspaces.find((workspace: Workspace) => workspace.id === id);
   };
@@ -373,7 +429,8 @@ export function WorkspacesProvider({ children }: WorkspacesProviderProps) {
       error, 
       refreshWorkspaces, 
       addWorkspace, 
-      getWorkspaceById 
+      getWorkspaceById,
+      updateWorkspaceFigmaLink
     }}>
       {children}
     </WorkspacesContext.Provider>
