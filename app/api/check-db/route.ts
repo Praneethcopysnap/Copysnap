@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
+// Define an interface for the table status entries
+interface TableStatus {
+  table: string;
+  exists: boolean;
+  error: string | null;
+}
+
 export async function GET() {
   try {
     const supabase = createClient(
@@ -9,7 +16,7 @@ export async function GET() {
     )
 
     // Array to store the status of each required table
-    const tableStatus = [];
+    const tableStatus: TableStatus[] = [];
 
     // Check if the profiles table exists
     const { data: profilesExists, error: profilesError } = await supabase
@@ -72,7 +79,7 @@ export async function GET() {
     });
 
     // Prepare SQL statements for any missing tables
-    const sqlStatements = [];
+    const sqlStatements: string[] = [];
 
     if (profilesError) {
       sqlStatements.push(`
