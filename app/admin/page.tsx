@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import AdminStatsComponent from '../components/Admin_Stats'
+import AdminStats from '../components/Admin_Stats'
 import AdminUserTable from '../components/AdminUser_Table'
 
 export default function AdminDashboard() {
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
           <p className="text-gray-600">Monitor CopySnap usage and manage features.</p>
         </div>
         
-        <AdminStatsComponent />
+        <AdminStats />
         
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Recent Signups</h2>

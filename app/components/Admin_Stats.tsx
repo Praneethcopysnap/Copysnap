@@ -8,7 +8,8 @@ const mockStats = [
   { name: 'Figma Plugin Installs', value: '143', change: '-3%', isPositive: false },
 ];
 
-export default function AdminStatsComponent() {
+// Renamed the function but kept export default
+function Stats() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
       {mockStats.map((stat, index) => (
@@ -33,4 +34,7 @@ export default function AdminStatsComponent() {
       ))}
     </div>
   )
-} 
+}
+
+// Export the Stats function as default
+export default Stats; 
