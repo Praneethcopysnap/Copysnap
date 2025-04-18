@@ -9,6 +9,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Alias for cn function to maintain compatibility with existing code
+ */
+export function classNames(...inputs: ClassValue[]) {
+  return cn(...inputs);
+}
+
+/**
  * Format a date to a human-readable string
  */
 export function formatDate(date: Date | string): string {
