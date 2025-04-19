@@ -30,14 +30,8 @@ export async function GET(request: Request) {
       );
     }
     
-    // Sanitize the file key - Figma only uses alphanumeric characters, no hyphens
-    // Standard Figma file keys are alphanumeric only
-    const sanitizedFileKey = fileKey.replace(/[^a-zA-Z0-9]/g, '');
-    
-    // Log if we had to sanitize the key
-    if (sanitizedFileKey !== fileKey) {
-      console.log(`Sanitized file key from "${fileKey}" to "${sanitizedFileKey}"`);
-    }
+    // We no longer need sanitization as our updated parsing logic guarantees clean file keys
+    // Use fileKey directly
     
     // For development, return mock data
     if (devMode) {
@@ -46,7 +40,7 @@ export async function GET(request: Request) {
         image: 'https://placehold.co/600x400/EAEAEA/7D30DD?text=Figma+Preview+(Dev+Mode)',
         file: {
           name: 'Mock Figma File',
-          key: sanitizedFileKey,
+          key: fileKey,
           lastModified: new Date().toISOString()
         },
         node: {
@@ -66,12 +60,12 @@ export async function GET(request: Request) {
       );
     }
     
-    console.log('Fetching Figma preview for file:', sanitizedFileKey, nodeId ? `with node: ${nodeId}` : 'without specific node');
+    console.log('Fetching Figma preview for file:', fileKey, nodeId ? `with node: ${nodeId}` : 'without specific node');
     
     // First try to access the file directly through the thumbnail API as a fast way to check if it exists
     try {
-      console.log(`Attempting thumbnail check with: https://www.figma.com/file/${sanitizedFileKey}/thumbnail`);
-      const thumbnailResponse = await fetch(`https://www.figma.com/file/${sanitizedFileKey}/thumbnail`, {
+      console.log(`Attempting thumbnail check with: https://www.figma.com/file/${fileKey}/thumbnail`);
+      const thumbnailResponse = await fetch(`https://www.figma.com/file/${fileKey}/thumbnail`, {
         method: 'HEAD'
       });
       
@@ -88,8 +82,8 @@ export async function GET(request: Request) {
     // Now check if the file is accessible through the Figma API
     try {
       // Try to access basic file information to verify permissions
-      console.log(`Checking file access: https://api.figma.com/v1/files/${sanitizedFileKey}/metadata`);
-      const checkResponse = await fetch(`https://api.figma.com/v1/files/${sanitizedFileKey}/metadata`, {
+      console.log(`Checking file access: https://api.figma.com/v1/files/${fileKey}/metadata`);
+      const checkResponse = await fetch(`https://api.figma.com/v1/files/${fileKey}/metadata`, {
         headers: {
           'X-Figma-Token': FIGMA_API_TOKEN
         }
@@ -110,7 +104,7 @@ export async function GET(request: Request) {
             { 
               error: 'Figma file not found. Please check the link and ensure the file exists.',
               details: 'The provided file key does not match any existing Figma file or you do not have access to it.',
-              fileKey: sanitizedFileKey
+              fileKey: fileKey
             },
             { status: 404 }
           );
@@ -119,7 +113,7 @@ export async function GET(request: Request) {
             { 
               error: 'Access denied. Make sure the Figma file is shared with the correct permissions and your API token is valid.',
               details: 'The file exists but you do not have permission to access it. Try sharing the file publicly or check your API token.',
-              fileKey: sanitizedFileKey
+              fileKey: fileKey
             },
             { status: 403 }
           );
@@ -128,7 +122,7 @@ export async function GET(request: Request) {
             { 
               error: 'Figma API rate limit exceeded. Please try again later.',
               details: 'Too many requests were made to the Figma API in a short period of time.',
-              fileKey: sanitizedFileKey
+              fileKey: fileKey
             },
             { status: 429 }
           );
@@ -137,7 +131,7 @@ export async function GET(request: Request) {
             { 
               error: 'Could not access Figma file', 
               details: errorData,
-              fileKey: sanitizedFileKey
+              fileKey: fileKey
             },
             { status: checkResponse.status || 500 }
           );
@@ -151,7 +145,7 @@ export async function GET(request: Request) {
         { 
           error: 'Failed to check file access', 
           details: String(error),
-          fileKey: sanitizedFileKey
+          fileKey: fileKey
         },
         { status: 500 }
       );
@@ -161,11 +155,11 @@ export async function GET(request: Request) {
     if (!nodeId) {
       try {
         // First try to get a thumbnail directly as a fallback
-        const fallbackThumbnail = `https://www.figma.com/file/${sanitizedFileKey}/thumbnail`;
+        const fallbackThumbnail = `https://www.figma.com/file/${fileKey}/thumbnail`;
         
         // Fetch the file metadata to find suitable frames
-        console.log(`Making Figma API request to: https://api.figma.com/v1/files/${sanitizedFileKey}`);
-        const fileResponse = await fetch(`https://api.figma.com/v1/files/${sanitizedFileKey}`, {
+        console.log(`Making Figma API request to: https://api.figma.com/v1/files/${fileKey}`);
+        const fileResponse = await fetch(`https://api.figma.com/v1/files/${fileKey}`, {
           headers: {
             'X-Figma-Token': FIGMA_API_TOKEN
           }
@@ -219,7 +213,7 @@ export async function GET(request: Request) {
             imageUrl: fallbackThumbnail,
             file: {
               name: fileData.name || 'Figma File', 
-              key: sanitizedFileKey
+              key: fileKey
             },
             warning: 'Document structure not accessible',
             success: true 
@@ -233,7 +227,7 @@ export async function GET(request: Request) {
             imageUrl: fallbackThumbnail,
             file: {
               name: fileData.name || 'Figma File', 
-              key: sanitizedFileKey
+              key: fileKey
             },
             warning: 'Document has no pages',
             success: true 
@@ -253,7 +247,7 @@ export async function GET(request: Request) {
             imageUrl: fallbackThumbnail,
             file: {
               name: fileData.name || 'Figma File', 
-              key: sanitizedFileKey
+              key: fileKey
             },
             warning: 'No content found in file',
             success: true 
@@ -273,7 +267,7 @@ export async function GET(request: Request) {
           if (firstPage.children.length > 0) {
             const fallbackNode = firstPage.children[0];
             console.log('Using fallback node:', fallbackNode.type, fallbackNode.id);
-            return await getImageForNode(sanitizedFileKey, fallbackNode.id);
+            return await getImageForNode(fileKey, fallbackNode.id);
           }
           
           console.error('No suitable content found in the Figma file');
@@ -282,7 +276,7 @@ export async function GET(request: Request) {
             imageUrl: fallbackThumbnail,
             file: {
               name: fileData.name || 'Figma File', 
-              key: sanitizedFileKey
+              key: fileKey
             },
             warning: 'No suitable frames found in file',
             success: true 
@@ -293,15 +287,15 @@ export async function GET(request: Request) {
         const targetNodeId = firstNode.id;
         console.log('Found suitable node:', firstNode.type, targetNodeId);
         
-        return await getImageForNode(sanitizedFileKey, targetNodeId);
+        return await getImageForNode(fileKey, targetNodeId);
       } catch (error) {
         console.error('Error processing Figma file data:', error);
         // Try to get an image of the entire file as a fallback
-        return await getImageForFileNoNode(sanitizedFileKey);
+        return await getImageForFileNoNode(fileKey);
       }
     } else {
       // If a specific node ID was provided, get that directly
-      return await getImageForNode(sanitizedFileKey, nodeId);
+      return await getImageForNode(fileKey, nodeId);
     }
   } catch (error) {
     console.error('Error fetching Figma preview:', error);
