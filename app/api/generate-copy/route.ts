@@ -133,8 +133,8 @@ export async function POST(request: NextRequest) {
     // For dev mode or insufficient quota, use mock suggestions
     let useMockData = devMode;
     
-    try {
-      if (!useMockData) {
+    if (!useMockData) {
+      try {
         // Build prompt based on context, element data, and brand voice
         let prompt = `Generate ${type === 'button' ? '3' : '2'} options for ${type} text in a ${tone} tone`;
         
@@ -187,26 +187,26 @@ export async function POST(request: NextRequest) {
             .filter(s => s.trim())
             .map(s => s.trim().replace(/^["']|["']$/g, ''));
         }
-      }
-    } catch (aiError: any) {
-      console.error('OpenAI API error:', aiError);
-      
-      // Handle rate limiting
-      if (aiError.status === 429) {
-        useMockData = true;
-        console.log('Using mock data due to rate limiting');
-      }
-      // Handle quota exceeded
-      else if (aiError.code === 'insufficient_quota') {
-        useMockData = true;
-        console.log('Using mock data due to insufficient quota');
-      }
-      // For other errors, return the error
-      else {
-        return NextResponse.json(
-          { error: `AI generation failed: ${aiError.message || 'Unknown error'}`, code: aiError.code || 'ai_error' },
-          { status: 500, headers: corsHeaders }
-        );
+      } catch (aiError: any) {
+        console.error('OpenAI API error:', aiError);
+        
+        // Handle rate limiting
+        if (aiError.status === 429) {
+          useMockData = true;
+          console.log('Using mock data due to rate limiting');
+        }
+        // Handle quota exceeded
+        else if (aiError.code === 'insufficient_quota') {
+          useMockData = true;
+          console.log('Using mock data due to insufficient quota');
+        }
+        // For other errors, return the error
+        else {
+          return NextResponse.json(
+            { error: `AI generation failed: ${aiError.message || 'Unknown error'}`, code: aiError.code || 'ai_error' },
+            { status: 500, headers: corsHeaders }
+          );
+        }
       }
     }
     
