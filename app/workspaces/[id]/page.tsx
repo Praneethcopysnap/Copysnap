@@ -222,8 +222,8 @@ export default function WorkspacePage() {
       // First try the public thumbnail URL as a fast fallback
       const thumbnailUrl = `https://www.figma.com/file/${fileKey}/thumbnail`;
       
-      // Call our API endpoint to get the image
-      const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}`);
+      // Call our API endpoint to get the image - add devMode for development
+      const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}&devMode=true`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -242,7 +242,7 @@ export default function WorkspacePage() {
         throw new Error(data.error || 'Failed to load Figma preview');
       }
       
-      return data.imageUrl || thumbnailUrl;
+      return data.imageUrl || data.image || thumbnailUrl;
     } catch (error) {
       console.error('Error fetching Figma preview:', error);
       throw error; // Propagate the error to be handled by the caller
@@ -271,7 +271,9 @@ export default function WorkspacePage() {
         elementName: formData.label,
         elementType: formData.type,
         // Include Figma design link data if available
-        elementData: figmaLink ? { figmaLink } : undefined
+        elementData: figmaLink ? { figmaLink } : undefined,
+        // Enable dev mode for API calls
+        devMode: true
       };
       
       console.log('Sending copy generation request:', payload);
