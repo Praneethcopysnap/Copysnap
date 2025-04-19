@@ -2,7 +2,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import SiteHeader from "../components/SiteHeader"
 import SidebarNav from '../components/SidebarNav'
-import ContentLibrary from '../components/Content_Library'
+import ContentLibrary from '../components/ContentLibrary'
 
 export default function LibraryPage() {
   return (
