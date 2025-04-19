@@ -1,4 +1,6 @@
-import React from 'react'
+'use client';
+
+import React, { useState } from 'react'
 
 // Mock data for demonstration
 const mockUsers = [
@@ -49,7 +51,7 @@ const mockUsers = [
   }
 ];
 
-export default function AdminUser_Table() {
+export default function AdminUserTable() {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="overflow-x-auto">

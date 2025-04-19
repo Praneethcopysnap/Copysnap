@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { FiHome, FiFolder, FiArchive, FiMic, FiTool, FiHelpCircle } from 'react-icons/fi'
 
-export default function Dashboard_Sidebar() {
+export default function DashboardSidebar() {
   const pathname = usePathname();
   
   const isActive = (path: string) => {

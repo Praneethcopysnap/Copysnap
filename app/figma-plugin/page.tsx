@@ -3,7 +3,7 @@
 import React from 'react'
 import SiteHeader from "../components/SiteHeader"
 import SidebarNav from '../components/SidebarNav'
-import FigmaPluginDemo from '../components/Figma_PluginDemo'
+import FigmaPluginDemo from '../components/FigmaPluginDemo'
 
 export default function FigmaPluginPage() {
   return (

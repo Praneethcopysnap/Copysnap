@@ -51,7 +51,6 @@ const mockLibraryData = [
   }
 ];
 
-// Create a named function for ContentLibrary
 function ContentLibrary() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -184,5 +183,4 @@ function ContentLibrary() {
   )
 }
 
-// Make sure there's only one default export at the end of the file
 export default ContentLibrary; 

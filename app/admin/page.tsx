@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import AdminStats from '../components/Admin_Stats'
-import AdminUserTable from '../components/AdminUser_Table'
+import AdminUserTable from '../components/AdminUserTable'
 
 export default function AdminDashboard() {
   return (

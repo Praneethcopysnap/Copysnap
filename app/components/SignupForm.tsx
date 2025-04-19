@@ -4,7 +4,7 @@ import React, { useState, FormEvent, ChangeEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-export default function Signup_Form() {
+export default function SignupForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',

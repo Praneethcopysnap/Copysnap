@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 
-export default function Waitlist_Form() {
+export default function WaitlistForm() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
