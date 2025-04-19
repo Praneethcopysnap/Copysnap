@@ -30,8 +30,7 @@ export async function GET(request: Request) {
       );
     }
     
-    // We no longer need sanitization as our updated parsing logic guarantees clean file keys
-    // Use fileKey directly
+    // No sanitization - use the exact fileKey as provided
     
     // For development, return mock data
     if (devMode) {
@@ -82,7 +81,7 @@ export async function GET(request: Request) {
     // Now check if the file is accessible through the Figma API
     try {
       // Try to access basic file information to verify permissions
-      console.log(`Checking file access: https://api.figma.com/v1/files/${fileKey}/metadata`);
+      console.log(`Figma API URL: https://api.figma.com/v1/files/${fileKey}/metadata`);
       const checkResponse = await fetch(`https://api.figma.com/v1/files/${fileKey}/metadata`, {
         headers: {
           'X-Figma-Token': FIGMA_API_TOKEN
@@ -99,37 +98,6 @@ export async function GET(request: Request) {
         }
         
         console.error('File access check failed:', errorData);
-        
-        // Check for hyphenated ID in error message
-        if (errorData && typeof errorData === 'object' && 'err' in errorData) {
-          const errMessage = String(errorData.err);
-          console.log('Figma API error message:', errMessage);
-          
-          // Check if the error contains a file ID with a hyphen
-          const hyphenMatch = errMessage.match(/(\d+)-([a-zA-Z0-9]+)/);
-          if (hyphenMatch) {
-            const hyphenatedId = hyphenMatch[0];
-            console.log(`Detected hyphenated ID in error: ${hyphenatedId}`);
-            
-            // Try again with the hyphenated ID
-            console.log(`Retrying metadata check with hyphenated ID: ${hyphenatedId}`);
-            const retryResponse = await fetch(`https://api.figma.com/v1/files/${hyphenatedId}/metadata`, {
-              headers: {
-                'X-Figma-Token': FIGMA_API_TOKEN
-              }
-            });
-            
-            if (retryResponse.ok) {
-              console.log('Successfully accessed file with hyphenated ID');
-              // Continue with the hyphenated ID
-              if (!nodeId) {
-                return await getImageForFileNoNode(hyphenatedId);
-              } else {
-                return await getImageForNode(hyphenatedId, nodeId);
-              }
-            }
-          }
-        }
         
         if (checkResponse.status === 404) {
           return NextResponse.json(
@@ -348,6 +316,8 @@ async function getImageForFileNoNode(fileKey: string) {
     
     // Additional error handling around API response
     try {
+      // Use exact fileKey with no modifications
+      console.log(`Figma File Image API URL: https://api.figma.com/v1/files/${fileKey}/images`);
       const imageResponse = await fetch(
         `https://api.figma.com/v1/files/${fileKey}/images`, 
         {
@@ -373,50 +343,6 @@ async function getImageForFileNoNode(fileKey: string) {
         }
         
         console.error('Failed to get file image:', errorData);
-        
-        // Check if we have a specific error about the file not being found
-        if (errorData && typeof errorData === 'object' && 'err' in errorData) {
-          const errMessage = String(errorData.err);
-          console.log('Figma API error message:', errMessage);
-          
-          // Check if the error contains a file ID with a hyphen
-          const hyphenMatch = errMessage.match(/(\d+)-([a-zA-Z0-9]+)/);
-          if (hyphenMatch) {
-            const hyphenatedId = hyphenMatch[0];
-            console.log(`Detected hyphenated ID in error: ${hyphenatedId}`);
-            
-            // Try again with the hyphenated ID
-            console.log(`Retrying with hyphenated ID: ${hyphenatedId}`);
-            const retryResponse = await fetch(
-              `https://api.figma.com/v1/files/${hyphenatedId}/images`,
-              {
-                method: 'POST',
-                headers: {
-                  'X-Figma-Token': FIGMA_API_TOKEN,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  format: 'png',
-                  scale: 2
-                })
-              }
-            );
-            
-            if (retryResponse.ok) {
-              const retryData = await retryResponse.json();
-              if (retryData.images && Object.values(retryData.images).length > 0) {
-                const imageUrl = Object.values(retryData.images)[0] as string;
-                console.log('Successfully got image with hyphenated ID');
-                return NextResponse.json({
-                  imageUrl,
-                  success: true,
-                  fileKey: hyphenatedId,
-                  note: 'Used hyphenated ID from error message'
-                });
-              }
-            }
-          }
-        }
         
         console.log('Using thumbnail URL as fallback');
         
@@ -478,6 +404,8 @@ async function getImageForNode(fileKey: string, nodeId: string) {
     console.log(`Fetching image for node ${cleanNodeId} in file ${fileKey}`);
     
     try {
+      // Use exact fileKey with no modifications
+      console.log(`Figma Node Image API URL: https://api.figma.com/v1/images/${fileKey}?ids=${cleanNodeId}`);
       const imageResponse = await fetch(
         `https://api.figma.com/v1/images/${fileKey}?ids=${cleanNodeId}&format=png&scale=2`, 
         {
@@ -497,45 +425,6 @@ async function getImageForNode(fileKey: string, nodeId: string) {
         }
         
         console.error('Failed to get image URL:', errorData);
-        
-        // Check if we have a specific error about the file not being found
-        if (errorData && typeof errorData === 'object' && 'err' in errorData) {
-          const errMessage = String(errorData.err);
-          console.log('Figma API error message:', errMessage);
-          
-          // Check if the error contains a file ID with a hyphen
-          const hyphenMatch = errMessage.match(/(\d+)-([a-zA-Z0-9]+)/);
-          if (hyphenMatch) {
-            const hyphenatedId = hyphenMatch[0];
-            console.log(`Detected hyphenated ID in error: ${hyphenatedId}`);
-            
-            // Try again with the hyphenated ID
-            console.log(`Retrying with hyphenated ID: ${hyphenatedId}`);
-            const retryResponse = await fetch(
-              `https://api.figma.com/v1/images/${hyphenatedId}?ids=${cleanNodeId}&format=png&scale=2`,
-              {
-                headers: {
-                  'X-Figma-Token': FIGMA_API_TOKEN
-                }
-              }
-            );
-            
-            if (retryResponse.ok) {
-              const retryData = await retryResponse.json();
-              if (retryData.images && retryData.images[cleanNodeId]) {
-                const imageUrl = retryData.images[cleanNodeId];
-                console.log('Successfully got node image with hyphenated ID');
-                return NextResponse.json({
-                  imageUrl,
-                  nodeId: cleanNodeId,
-                  success: true,
-                  fileKey: hyphenatedId,
-                  note: 'Used hyphenated ID from error message'
-                });
-              }
-            }
-          }
-        }
         
         // If we can't get the specific node, try fetching the entire file image
         if (imageResponse.status === 404) {
