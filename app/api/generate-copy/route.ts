@@ -4,9 +4,18 @@ import { NextResponse, NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
 // Initialize OpenAI client if API key is available
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null;
+const apiKey = process.env.OPENAI_API_KEY || '';
+let openai: OpenAI | null = null;
+
+try {
+  if (apiKey) {
+    openai = new OpenAI({ apiKey });
+  } else {
+    console.warn('OPENAI_API_KEY environment variable is not set. AI generation will not work.');
+  }
+} catch (error) {
+  console.error('Failed to initialize OpenAI client:', error);
+}
 
 // CORS headers for Figma plugin
 const corsHeaders = {
@@ -24,43 +33,59 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the authorization header
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401, headers: corsHeaders }
-      );
-    }
-    
-    // Extract the token
-    const token = authHeader.substring(7);
-    
-    // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // Verify the token by getting the user session
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401, headers: corsHeaders }
-      );
-    }
-    
-    // Parse the request body
+    // Check for dev mode flag
+    const requestData = await request.json();
     const { 
-      workspaceId, 
+      devMode, 
       type, 
       tone, 
       context, 
       elementName, 
-      elementType,
-      elementData 
-    } = await request.json();
-
+      elementType, 
+      elementData, 
+      workspaceId 
+    } = requestData;
+    
+    // For development testing only - bypass authentication
+    let user: any = null;
+    
+    if (!devMode) {
+      // Get the authorization header
+      const authHeader = request.headers.get('authorization');
+      
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return NextResponse.json(
+          { error: 'Missing or invalid authorization header' },
+          { status: 401, headers: corsHeaders }
+        );
+      }
+      
+      // Extract the token
+      const token = authHeader.substring(7);
+      
+      // Initialize Supabase client
+      const supabase = createRouteHandlerClient({ cookies });
+      
+      // Verify the token by getting the user session
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser(token);
+      
+      if (userError || !authUser) {
+        return NextResponse.json(
+          { error: 'Invalid or expired token' },
+          { status: 401, headers: corsHeaders }
+        );
+      }
+      
+      user = authUser;
+    } else {
+      // Use mock user for dev mode
+      console.log('Using dev mode with mock user');
+      user = {
+        id: 'dev-user-id',
+        email: 'dev@example.com'
+      };
+    }
+    
     // Validate required fields
     if (!type || !tone) {
       return NextResponse.json(
@@ -69,22 +94,47 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Fetch the user's brand voice settings
-    const { data: brandVoice, error: brandVoiceError } = await supabase
-      .from('brand_voice')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    
-    if (brandVoiceError && brandVoiceError.code !== 'PGRST116') {
-      console.error('Error fetching brand voice:', brandVoiceError);
+    // For dev mode, use mock brand voice
+    let brandVoice: any = null;
+    if (!devMode) {
+      // Initialize Supabase client if not already done
+      const supabase = createRouteHandlerClient({ cookies });
+      
+      // Fetch the user's brand voice settings
+      const { data: fetchedBrandVoice, error: brandVoiceError } = await supabase
+        .from('brand_voice')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (brandVoiceError && brandVoiceError.code !== 'PGRST116') {
+        console.error('Error fetching brand voice:', brandVoiceError);
+      }
+      
+      brandVoice = fetchedBrandVoice;
+    } else {
+      // Mock brand voice for dev mode
+      brandVoice = {
+        custom_rules: 'Be concise and friendly. Use simple language.',
+        examples: 'Join Us, Get Started, Learn More'
+      };
     }
     
     // Generate suggestions based on the user's input and brand voice
     let suggestions: string[] = [];
     
-    if (openai) {
-      try {
+    if (!openai) {
+      return NextResponse.json(
+        { error: 'OpenAI API key is not configured', requiresConfig: true },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+    
+    // For dev mode or insufficient quota, use mock suggestions
+    let useMockData = devMode;
+    
+    try {
+      if (!useMockData) {
         // Build prompt based on context, element data, and brand voice
         let prompt = `Generate ${type === 'button' ? '3' : '2'} options for ${type} text in a ${tone} tone`;
         
@@ -137,81 +187,130 @@ export async function POST(request: NextRequest) {
             .filter(s => s.trim())
             .map(s => s.trim().replace(/^["']|["']$/g, ''));
         }
-      } catch (aiError) {
-        console.error('OpenAI API error:', aiError);
-        // Fall back to mock suggestions if OpenAI fails
-        suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
+      }
+    } catch (aiError: any) {
+      console.error('OpenAI API error:', aiError);
+      
+      // Handle rate limiting
+      if (aiError.status === 429) {
+        useMockData = true;
+        console.log('Using mock data due to rate limiting');
+      }
+      // Handle quota exceeded
+      else if (aiError.code === 'insufficient_quota') {
+        useMockData = true;
+        console.log('Using mock data due to insufficient quota');
+      }
+      // For other errors, return the error
+      else {
+        return NextResponse.json(
+          { error: `AI generation failed: ${aiError.message || 'Unknown error'}`, code: aiError.code || 'ai_error' },
+          { status: 500, headers: corsHeaders }
+        );
+      }
+    }
+    
+    // Use mock data if devMode is true or if we encountered an OpenAI error
+    if (useMockData) {
+      suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
+    }
+    
+    if (!suggestions || suggestions.length === 0) {
+      return NextResponse.json(
+        { error: 'Failed to generate suggestions' },
+        { status: 500, headers: corsHeaders }
+      );
+    }
+    
+    // In devMode, skip database operations
+    if (!devMode) {
+      try {
+        // Initialize Supabase client if not already done
+        const supabase = createRouteHandlerClient({ cookies });
+        
+        // Store the generation in the database
+        const { data: copyGeneration, error: saveError } = await supabase
+          .from('copy_generations')
+          .insert({
+            user_id: user.id,
+            workspace_id: workspaceId,
+            type,
+            tone,
+            context: context || null,
+            element_name: elementName || null,
+            element_type: elementType || null,
+            suggestions: suggestions,
+            timestamp: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (saveError) {
+          console.error('Error saving copy generation:', saveError);
+          // Still return suggestions even if DB operation fails
+          return NextResponse.json({ 
+            suggestions,
+            success: true,
+            warning: 'Generated suggestions successfully, but failed to save to database'
+          }, { headers: corsHeaders });
+        }
+        
+        // Increment the workspace copy count
+        if (workspaceId) {
+          await supabase
+            .from('workspaces')
+            .update({ 
+              copy_count: supabase.rpc('increment', { x: 1 }),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', workspaceId);
+          
+          // Add to copy history if the workspace exists
+          // Create a summary of the generation for history
+          const historySummary = `${type.charAt(0).toUpperCase() + type.slice(1)} for ${elementName || elementType || 'UI element'}`;
+          
+          await supabase.from('copy_history').insert({
+            user_id: user.id,
+            workspace_id: workspaceId,
+            type: type,
+            content: historySummary,
+          });
+        }
+        
+        // Return the suggestions
+        return NextResponse.json({ 
+          suggestions,
+          generationId: copyGeneration?.id || null,
+          success: true
+        }, { headers: corsHeaders });
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        // Still return suggestions even if DB operations fail
+        return NextResponse.json({ 
+          suggestions,
+          success: true,
+          warning: 'Generated suggestions successfully, but failed to save to database'
+        }, { headers: corsHeaders });
       }
     } else {
-      // Use mock suggestions if OpenAI is not available
-      suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
+      // For devMode, just return the suggestions
+      return NextResponse.json({ 
+        suggestions,
+        generationId: 'mock-generation-id',
+        success: true,
+        dev: true
+      }, { headers: corsHeaders });
     }
-    
-    // Default to mock suggestions if none were generated
-    if (!suggestions || suggestions.length === 0) {
-      suggestions = generateMockSuggestions(type, tone, type === 'button' ? 3 : 2);
-    }
-    
-    // Store the generation in the database
-    const { data: copyGeneration, error: saveError } = await supabase
-      .from('copy_generations')
-      .insert({
-        user_id: user.id,
-        workspace_id: workspaceId,
-        type,
-        tone,
-        context: context || null,
-        element_name: elementName || null,
-        element_type: elementType || null,
-        suggestions: suggestions,
-        timestamp: new Date().toISOString()
-      })
-      .select()
-      .single();
-    
-    if (saveError) {
-      console.error('Error saving copy generation:', saveError);
-    } else {
-      // Increment the workspace copy count
-      await supabase
-        .from('workspaces')
-        .update({ 
-          copy_count: supabase.rpc('increment', { x: 1 }),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', workspaceId);
-    }
-    
-    // Add to copy history if the workspace exists
-    if (workspaceId) {
-      // Create a summary of the generation for history
-      const historySummary = `${type.charAt(0).toUpperCase() + type.slice(1)} for ${elementName || elementType || 'UI element'}`;
-      
-      await supabase.from('copy_history').insert({
-        user_id: user.id,
-        workspace_id: workspaceId,
-        type: type,
-        content: historySummary,
-      });
-    }
-    
-    // Return the suggestions
-    return NextResponse.json({ 
-      suggestions,
-      generationId: copyGeneration?.id || null,
-      success: true
-    }, { headers: corsHeaders });
-    
   } catch (error) {
     console.error('Error generating copy:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: String(error) },
       { status: 500, headers: corsHeaders }
     );
   }
 }
 
-// Helper function to generate mock suggestions
+// Helper function to generate mock suggestions, only used if requested by client with useMock=true
 function generateMockSuggestions(type: string, tone: string, count: number) {
   const examples: Record<string, Record<string, string[]>> = {
     button: {

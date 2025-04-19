@@ -1,13 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
 import { randomBytes } from 'crypto'
 
-const supabase = createClient<Database>(
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export type ApiKey = Database['public']['Tables']['api_keys']['Row']
+export type ApiKey = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  key_hash: string;
+  created_by: string;
+  created_at: string;
+  expires_at: string | null;
+  last_used_at: string | null;
+  key?: string; // Only returned on creation
+}
 
 export const apiService = {
   // Generate a new API key

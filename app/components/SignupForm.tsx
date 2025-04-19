@@ -15,7 +15,7 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -23,7 +23,7 @@ export default function SignupForm() {
     }))
   }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
     
     // Basic validation

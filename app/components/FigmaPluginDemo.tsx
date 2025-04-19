@@ -27,8 +27,8 @@ const mockCopySuggestions = {
 };
 
 export default function FigmaPluginDemo() {
-  const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  const [selectedCopy, setSelectedCopy] = useState({});
+  const [selectedElement, setSelectedElement] = useState(null as string | null);
+  const [selectedCopy, setSelectedCopy] = useState({} as Record<string, string>);
   
   const handleElementClick = (elementId: string) => {
     setSelectedElement(elementId);

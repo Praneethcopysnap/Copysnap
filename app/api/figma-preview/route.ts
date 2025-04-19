@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+// Mark this route as dynamic to prevent static generation errors
+export const dynamic = 'force-dynamic';
+
 // Use environment variable for Figma API token
 const FIGMA_API_TOKEN = process.env.FIGMA_API_TOKEN || '';
 
@@ -14,12 +17,40 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const fileKey = searchParams.get('fileKey');
     const nodeId = searchParams.get('nodeId') || '';
+    // Check for dev mode
+    const devMode = searchParams.get('devMode') === 'true';
     
     if (!fileKey) {
       console.error('Missing fileKey parameter');
       return NextResponse.json(
         { error: 'Missing fileKey parameter' },
         { status: 400 }
+      );
+    }
+    
+    // For development, return mock data
+    if (devMode) {
+      console.log('Using dev mode for Figma preview');
+      return NextResponse.json({
+        image: 'https://placehold.co/600x400/EAEAEA/7D30DD?text=Figma+Preview+(Dev+Mode)',
+        file: {
+          name: 'Mock Figma File',
+          key: fileKey,
+          lastModified: new Date().toISOString()
+        },
+        node: {
+          id: nodeId || 'mock-node-id',
+          name: 'Mock Frame',
+          type: 'FRAME'
+        },
+        dev: true
+      });
+    }
+    
+    if (!FIGMA_API_TOKEN) {
+      return NextResponse.json(
+        { error: 'Figma API token is not configured', requiresConfig: true },
+        { status: 401 }
       );
     }
     
@@ -46,13 +77,18 @@ export async function GET(request: Request) {
         
         if (checkResponse.status === 404) {
           return NextResponse.json(
-            { error: 'Figma file not found. Please check the link and ensure the file is shared properly.' },
+            { error: 'Figma file not found. Please check the link and ensure the file exists.' },
             { status: 404 }
           );
         } else if (checkResponse.status === 403) {
           return NextResponse.json(
-            { error: 'Access denied. Make sure the Figma file is shared with "Anyone with the link" permission.' },
+            { error: 'Access denied. Make sure the Figma file is shared with the correct permissions and your API token is valid.' },
             { status: 403 }
+          );
+        } else if (checkResponse.status === 429) {
+          return NextResponse.json(
+            { error: 'Figma API rate limit exceeded. Please try again later.' },
+            { status: 429 }
           );
         } else {
           return NextResponse.json(
@@ -65,7 +101,10 @@ export async function GET(request: Request) {
       console.log('File access check passed - file is accessible');
     } catch (error) {
       console.error('Error checking file access:', error);
-      // Continue with the rest of the process even if this check fails
+      return NextResponse.json(
+        { error: 'Failed to check file access', details: String(error) },
+        { status: 500 }
+      );
     }
     
     // First, if no specific node ID is provided, get the file to find the first node

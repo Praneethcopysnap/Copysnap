@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, MouseEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useWorkspaces } from '../../context/workspaces';
 import SiteHeader from "@/app/components/SiteHeader";
@@ -184,10 +184,13 @@ export default function WorkspacePage() {
   const [figmaScreenshot, setFigmaScreenshot] = useState('');
   const [figmaLoading, setFigmaLoading] = useState(false);
   const [figmaError, setFigmaError] = useState('');
+  const [generationError, setGenerationError] = useState('');
 
   // Helper function to try fetching a Figma preview
   const fetchFigmaPreview = async (figmaLink) => {
-    if (!figmaLink) return null;
+    if (!figmaLink) {
+      return null;
+    }
     
     try {
       // Extract the file key from various Figma link formats
@@ -205,8 +208,7 @@ export default function WorkspacePage() {
         fileKey = fileMatch[1];
         console.log('Extracted file key:', fileKey);
       } else {
-        console.error('Could not extract Figma file key from link:', figmaLink);
-        return null;
+        throw new Error('Could not extract Figma file key from link. Please use a valid Figma link.');
       }
       
       // Extract node ID if present
@@ -221,30 +223,29 @@ export default function WorkspacePage() {
       const thumbnailUrl = `https://www.figma.com/file/${fileKey}/thumbnail`;
       
       // Call our API endpoint to get the image
-      try {
-        const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            // Return the public thumbnail as fallback
-            console.log('Using public thumbnail as fallback');
-            return thumbnailUrl;
-          }
-          
-          const errorData = await response.json();
-          console.error('Figma API error:', errorData);
-          return thumbnailUrl; // Return thumbnail as fallback
+      const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}`);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        // Handle specific error types
+        if (response.status === 401 && data.requiresConfig) {
+          throw new Error('Figma API token is not configured. Please add it to your environment settings.');
+        } else if (response.status === 404) {
+          throw new Error('Figma file not found. Please check the link and make sure the file exists.');
+        } else if (response.status === 403) {
+          throw new Error('Access denied. Make sure the Figma file is shared with the correct permissions.');
+        } else if (response.status === 429) {
+          throw new Error('Figma API rate limit exceeded. Please try again later.');
         }
         
-        const data = await response.json();
-        return data.imageUrl || thumbnailUrl;
-      } catch (error) {
-        console.error('Error fetching from API route:', error);
-        return thumbnailUrl; // Return thumbnail as fallback
+        console.error('Figma API error:', data);
+        throw new Error(data.error || 'Failed to load Figma preview');
       }
+      
+      return data.imageUrl || thumbnailUrl;
     } catch (error) {
       console.error('Error fetching Figma preview:', error);
-      return null;
+      throw error; // Propagate the error to be handled by the caller
     }
   };
 
@@ -285,19 +286,29 @@ export default function WorkspacePage() {
         body: JSON.stringify(payload)
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API response error:', errorData);
-        throw new Error(errorData.error || 'Failed to generate copy');
+        console.error('API response error:', data);
+        
+        // Handle specific error types
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        } else if (data.code === 'insufficient_quota') {
+          throw new Error('API quota exceeded. Please check your billing details.');
+        } else if (data.requiresConfig) {
+          throw new Error('OpenAI API key is not properly configured. Please check your environment settings.');
+        } else {
+          throw new Error(data.error || 'Failed to generate copy');
+        }
       }
       
-      const data = await response.json();
       console.log('API response:', data);
       
       return data.suggestions || []; // Ensure it returns an array
     } catch (error) {
       console.error('Error generating copy:', error);
-      return []; // Return empty array on error
+      throw error; // Propagate the error to be handled by the caller
     }
   };
 
@@ -328,11 +339,12 @@ export default function WorkspacePage() {
           if (previewUrl) {
             setFigmaScreenshot(previewUrl);
           } else {
-            setFigmaError('Could not load Figma preview. The file may not be public or the link is invalid.');
+            setFigmaError('No preview available for this Figma file.');
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error in Figma preview loading:', error);
-          setFigmaError('Error loading Figma preview. Please make sure your Figma file is shared for viewing.');
+          // Use the error message directly if it's from our error handling
+          setFigmaError(error.message || 'Error loading Figma preview. Please check the link and your API configuration.');
         } finally {
           setFigmaLoading(false);
         }
@@ -425,6 +437,65 @@ export default function WorkspacePage() {
       </div>
     );
   }
+  
+  // Handle form submission for content generation
+  const handleGenerateContent = async (e: any) => {
+    e.preventDefault();
+    if (isGenerating) return;
+    
+    // Basic validation
+    if (!contentFormData.label.trim()) {
+      alert("Please enter a label for your content");
+      return;
+    }
+    
+    setIsGenerating(true);
+    setGenerationError('');
+    
+    try {
+      // Update the Figma link if it has changed or was newly added
+      if ((!hasFigmaLink || showFigmaLinkInput) && figmaLink.trim()) {
+        try {
+          await updateWorkspaceFigmaLink(workspaceId, figmaLink.trim());
+          setHasFigmaLink(true);
+          setShowFigmaLinkInput(false);
+        } catch (error) {
+          console.error("Error updating Figma link:", error);
+          // Continue with generation even if Figma link update fails
+        }
+      }
+      
+      // Make the API call to generate copy
+      const suggestions = await generateCopy(contentFormData, workspaceId);
+      
+      // Store the generated suggestions
+      setGeneratedSuggestions(suggestions);
+      
+      // Add notification
+      const newNotification = {
+        id: (notifications.length + 1).toString(),
+        type: 'update',
+        message: 'New content was created successfully',
+        time: 'Just now',
+        read: false
+      };
+      setNotifications([newNotification, ...notifications]);
+      
+      // Show generation results panel
+      setShowGenerationResults(true);
+      
+      // Close the modal
+      setShowCreateModal(false);
+    } catch (error: any) {
+      console.error('Generation failed:', error);
+      setGenerationError(error.message || 'Failed to generate copy. Please try again.');
+      
+      // Don't show results panel on error
+      setShowGenerationResults(false);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -1347,109 +1418,7 @@ export default function WorkspacePage() {
                     whileHover={{ scale: isGenerating ? 1 : 1.05 }}
                     whileTap={{ scale: isGenerating ? 1 : 0.95 }}
                     disabled={isGenerating}
-                    onClick={async () => {
-                      if (isGenerating) return;
-                      
-                      // Basic validation
-                      if (!contentFormData.label.trim()) {
-                        alert("Please enter a label for your content");
-                        return;
-                      }
-                      
-                      setIsGenerating(true);
-                      
-                      try {
-                        // Update the Figma link if it has changed or was newly added
-                        if ((!hasFigmaLink || showFigmaLinkInput) && figmaLink.trim()) {
-                          try {
-                            await updateWorkspaceFigmaLink(workspaceId, figmaLink.trim());
-                            setHasFigmaLink(true);
-                            setShowFigmaLinkInput(false);
-                          } catch (error) {
-                            console.error("Error updating Figma link:", error);
-                            // Continue with generation even if Figma link update fails
-                          }
-                        }
-                        
-                        try {
-                          // Make a real API call to generate copy
-                          const suggestions = await generateCopy(contentFormData, workspaceId);
-                          
-                          // Store the generated suggestions
-                          setGeneratedSuggestions(suggestions);
-                          
-                          // Try to fetch Figma preview if available
-                          if (figmaLink) {
-                            const previewUrl = await fetchFigmaPreview(figmaLink);
-                            if (previewUrl) {
-                              setFigmaScreenshot(previewUrl);
-                            }
-                          }
-                          
-                          // Add notification
-                          const newNotification = {
-                            id: (notifications.length + 1).toString(),
-                            type: 'update',
-                            message: 'New content was created successfully',
-                            time: 'Just now',
-                            read: false
-                          };
-                          setNotifications([newNotification, ...notifications]);
-                          
-                          // Show generation results panel instead of alert
-                          setShowGenerationResults(true);
-                          
-                          // Close the modal
-                          setShowCreateModal(false);
-                        } catch (error) {
-                          console.error("API error:", error);
-                          
-                          // Fall back to mock data on API error
-                          alert("Could not generate copy through API. Using mock data instead.");
-                          
-                          // Mock response with placeholder variations
-                          const variations = [
-                            "Get Started Now",
-                            "Begin Your Journey",
-                            "Start for Free",
-                            "Try it Today",
-                            "Launch Your Experience"
-                          ];
-                          
-                          // Store the mock suggestions
-                          setGeneratedSuggestions(variations);
-                          
-                          // Try to fetch Figma preview if available
-                          if (figmaLink) {
-                            const previewUrl = await fetchFigmaPreview(figmaLink);
-                            if (previewUrl) {
-                              setFigmaScreenshot(previewUrl);
-                            }
-                          }
-                          
-                          // Add notification
-                          const newNotification = {
-                            id: (notifications.length + 1).toString(),
-                            type: 'update',
-                            message: 'New content was created with mock data',
-                            time: 'Just now',
-                            read: false
-                          };
-                          setNotifications([newNotification, ...notifications]);
-                          
-                          // Show results panel
-                          setShowGenerationResults(true);
-                          
-                          // Close the modal
-                          setShowCreateModal(false);
-                        }
-                      } catch (error) {
-                        console.error("Error generating content:", error);
-                        alert("Error generating content. Please try again.");
-                      } finally {
-                        setIsGenerating(false);
-                      }
-                    }}
+                    onClick={handleGenerateContent}
                   >
                     {isGenerating ? (
                       <>

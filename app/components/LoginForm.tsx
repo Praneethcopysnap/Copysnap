@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, FormEvent, ChangeEvent } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -11,7 +11,7 @@ export default function LoginForm() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target
     if (name === 'email') {
       setEmail(value)
@@ -20,7 +20,7 @@ export default function LoginForm() {
     }
   }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
     setLoading(true)
     setError('')

@@ -1,12 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
 
-const supabase = createClient<Database>(
+const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export type CopyEntry = Database['public']['Tables']['copy_entries']['Row']
+export type CopyEntry = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  content: string;
+  context: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export const copyService = {
   // Create a new copy entry
