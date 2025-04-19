@@ -93,11 +93,43 @@ export async function GET(request: Request) {
         let errorData;
         try {
           errorData = await checkResponse.json();
+          console.error('Figma API error response:', errorData);
         } catch (e) {
           errorData = { status: checkResponse.status, statusText: checkResponse.statusText };
         }
         
         console.error('File access check failed:', errorData);
+        
+        // Check for hyphenated ID in error message
+        if (errorData && typeof errorData === 'object' && 'err' in errorData) {
+          const errMessage = String(errorData.err);
+          console.log('Figma API error message:', errMessage);
+          
+          // Check if the error contains a file ID with a hyphen
+          const hyphenMatch = errMessage.match(/(\d+)-([a-zA-Z0-9]+)/);
+          if (hyphenMatch) {
+            const hyphenatedId = hyphenMatch[0];
+            console.log(`Detected hyphenated ID in error: ${hyphenatedId}`);
+            
+            // Try again with the hyphenated ID
+            console.log(`Retrying metadata check with hyphenated ID: ${hyphenatedId}`);
+            const retryResponse = await fetch(`https://api.figma.com/v1/files/${hyphenatedId}/metadata`, {
+              headers: {
+                'X-Figma-Token': FIGMA_API_TOKEN
+              }
+            });
+            
+            if (retryResponse.ok) {
+              console.log('Successfully accessed file with hyphenated ID');
+              // Continue with the hyphenated ID
+              if (!nodeId) {
+                return await getImageForFileNoNode(hyphenatedId);
+              } else {
+                return await getImageForNode(hyphenatedId, nodeId);
+              }
+            }
+          }
+        }
         
         if (checkResponse.status === 404) {
           return NextResponse.json(
@@ -314,55 +346,113 @@ async function getImageForFileNoNode(fileKey: string) {
     // First try thumbnail URL as a reliable fallback
     const thumbnailUrl = `https://www.figma.com/file/${fileKey}/thumbnail`;
     
-    const imageResponse = await fetch(
-      `https://api.figma.com/v1/files/${fileKey}/images`, 
-      {
-        method: 'POST',
-        headers: {
-          'X-Figma-Token': FIGMA_API_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          format: 'png',
-          scale: 2
-        })
-      }
-    );
-    
-    if (!imageResponse.ok) {
-      let errorData;
-      try {
-        errorData = await imageResponse.json();
-      } catch (e) {
-        errorData = { status: imageResponse.status, statusText: imageResponse.statusText };
+    // Additional error handling around API response
+    try {
+      const imageResponse = await fetch(
+        `https://api.figma.com/v1/files/${fileKey}/images`, 
+        {
+          method: 'POST',
+          headers: {
+            'X-Figma-Token': FIGMA_API_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            format: 'png',
+            scale: 2
+          })
+        }
+      );
+      
+      if (!imageResponse.ok) {
+        let errorData;
+        try {
+          errorData = await imageResponse.json();
+          console.error('Figma API error response:', errorData);
+        } catch (e) {
+          errorData = { status: imageResponse.status, statusText: imageResponse.statusText };
+        }
+        
+        console.error('Failed to get file image:', errorData);
+        
+        // Check if we have a specific error about the file not being found
+        if (errorData && typeof errorData === 'object' && 'err' in errorData) {
+          const errMessage = String(errorData.err);
+          console.log('Figma API error message:', errMessage);
+          
+          // Check if the error contains a file ID with a hyphen
+          const hyphenMatch = errMessage.match(/(\d+)-([a-zA-Z0-9]+)/);
+          if (hyphenMatch) {
+            const hyphenatedId = hyphenMatch[0];
+            console.log(`Detected hyphenated ID in error: ${hyphenatedId}`);
+            
+            // Try again with the hyphenated ID
+            console.log(`Retrying with hyphenated ID: ${hyphenatedId}`);
+            const retryResponse = await fetch(
+              `https://api.figma.com/v1/files/${hyphenatedId}/images`,
+              {
+                method: 'POST',
+                headers: {
+                  'X-Figma-Token': FIGMA_API_TOKEN,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  format: 'png',
+                  scale: 2
+                })
+              }
+            );
+            
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json();
+              if (retryData.images && Object.values(retryData.images).length > 0) {
+                const imageUrl = Object.values(retryData.images)[0] as string;
+                console.log('Successfully got image with hyphenated ID');
+                return NextResponse.json({
+                  imageUrl,
+                  success: true,
+                  fileKey: hyphenatedId,
+                  note: 'Used hyphenated ID from error message'
+                });
+              }
+            }
+          }
+        }
+        
+        console.log('Using thumbnail URL as fallback');
+        
+        // Always return the thumbnail URL as fallback
+        return NextResponse.json({ 
+          imageUrl: thumbnailUrl,
+          warning: 'Could not generate file image, using thumbnail instead',
+          success: true,
+          fileKey
+        });
       }
       
-      console.error('Failed to get file image:', errorData);
-      console.log('Using thumbnail URL as fallback');
-      
-      // Always return the thumbnail URL as fallback
+      const imageData = await imageResponse.json();
+      if (imageData.images && Object.values(imageData.images).length > 0) {
+        const imageUrl = Object.values(imageData.images)[0] as string;
+        console.log('Successfully got full file image');
+        return NextResponse.json({ 
+          imageUrl,
+          success: true,
+          fileKey
+        });
+      } else {
+        console.error('No image returned for full file');
+        return NextResponse.json({ 
+          imageUrl: thumbnailUrl,
+          warning: 'API returned no images, using thumbnail instead',
+          success: true,
+          fileKey
+        });
+      }
+    } catch (requestError) {
+      console.error('Error making request to Figma API:', requestError);
+      // Return thumbnail as ultimate fallback
       return NextResponse.json({ 
-        imageUrl: thumbnailUrl,
-        warning: 'Could not generate file image, using thumbnail instead',
-        success: true,
-        fileKey
-      });
-    }
-    
-    const imageData = await imageResponse.json();
-    if (imageData.images && Object.values(imageData.images).length > 0) {
-      const imageUrl = Object.values(imageData.images)[0] as string;
-      console.log('Successfully got full file image');
-      return NextResponse.json({ 
-        imageUrl,
-        success: true,
-        fileKey
-      });
-    } else {
-      console.error('No image returned for full file');
-      return NextResponse.json({ 
-        imageUrl: thumbnailUrl,
-        warning: 'API returned no images, using thumbnail instead',
+        imageUrl: `https://www.figma.com/file/${fileKey}/thumbnail`,
+        warning: 'Error fetching file image, using thumbnail instead',
         success: true,
         fileKey
       });
@@ -387,74 +477,126 @@ async function getImageForNode(fileKey: string, nodeId: string) {
     
     console.log(`Fetching image for node ${cleanNodeId} in file ${fileKey}`);
     
-    const imageResponse = await fetch(
-      `https://api.figma.com/v1/images/${fileKey}?ids=${cleanNodeId}&format=png&scale=2`, 
-      {
-        headers: {
-          'X-Figma-Token': FIGMA_API_TOKEN
+    try {
+      const imageResponse = await fetch(
+        `https://api.figma.com/v1/images/${fileKey}?ids=${cleanNodeId}&format=png&scale=2`, 
+        {
+          headers: {
+            'X-Figma-Token': FIGMA_API_TOKEN
+          }
         }
-      }
-    );
-    
-    if (!imageResponse.ok) {
-      let errorData;
-      try {
-        errorData = await imageResponse.json();
-      } catch (e) {
-        errorData = { status: imageResponse.status, statusText: imageResponse.statusText };
-      }
+      );
       
-      console.error('Failed to get image URL:', errorData);
-      // If we can't get the specific node, try fetching the entire file image
-      if (imageResponse.status === 404) {
-        console.log('Node not found, trying to get full file image');
-        return await getImageForFileNoNode(fileKey);
-      }
-      
-      // Return thumbnail as fallback
-      return NextResponse.json({ 
-        imageUrl: `https://www.figma.com/file/${fileKey}/thumbnail`,
-        warning: 'Could not get node image, using thumbnail instead',
-        success: true,
-        fileKey,
-        nodeId: cleanNodeId
-      });
-    }
-    
-    const imageData = await imageResponse.json();
-    const imageUrl = imageData.images && imageData.images[cleanNodeId];
-    
-    if (!imageUrl) {
-      console.error('No image URL returned for node:', cleanNodeId);
-      // Try to get a thumbnail of the file
-      try {
-        console.log('Attempting to get file thumbnail as fallback');
+      if (!imageResponse.ok) {
+        let errorData;
+        try {
+          errorData = await imageResponse.json();
+          console.error('Figma API error response:', errorData);
+        } catch (e) {
+          errorData = { status: imageResponse.status, statusText: imageResponse.statusText };
+        }
+        
+        console.error('Failed to get image URL:', errorData);
+        
+        // Check if we have a specific error about the file not being found
+        if (errorData && typeof errorData === 'object' && 'err' in errorData) {
+          const errMessage = String(errorData.err);
+          console.log('Figma API error message:', errMessage);
+          
+          // Check if the error contains a file ID with a hyphen
+          const hyphenMatch = errMessage.match(/(\d+)-([a-zA-Z0-9]+)/);
+          if (hyphenMatch) {
+            const hyphenatedId = hyphenMatch[0];
+            console.log(`Detected hyphenated ID in error: ${hyphenatedId}`);
+            
+            // Try again with the hyphenated ID
+            console.log(`Retrying with hyphenated ID: ${hyphenatedId}`);
+            const retryResponse = await fetch(
+              `https://api.figma.com/v1/images/${hyphenatedId}?ids=${cleanNodeId}&format=png&scale=2`,
+              {
+                headers: {
+                  'X-Figma-Token': FIGMA_API_TOKEN
+                }
+              }
+            );
+            
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json();
+              if (retryData.images && retryData.images[cleanNodeId]) {
+                const imageUrl = retryData.images[cleanNodeId];
+                console.log('Successfully got node image with hyphenated ID');
+                return NextResponse.json({
+                  imageUrl,
+                  nodeId: cleanNodeId,
+                  success: true,
+                  fileKey: hyphenatedId,
+                  note: 'Used hyphenated ID from error message'
+                });
+              }
+            }
+          }
+        }
+        
+        // If we can't get the specific node, try fetching the entire file image
+        if (imageResponse.status === 404) {
+          console.log('Node not found, trying to get full file image');
+          return await getImageForFileNoNode(fileKey);
+        }
+        
+        // Return thumbnail as fallback
         return NextResponse.json({ 
           imageUrl: `https://www.figma.com/file/${fileKey}/thumbnail`,
-          nodeId: 'thumbnail',
-          warning: 'No image available for specified node, using thumbnail instead',
+          warning: 'Could not get node image, using thumbnail instead',
           success: true,
-          fileKey
+          fileKey,
+          nodeId: cleanNodeId
         });
-      } catch (thumbnailError) {
-        console.error('Error getting thumbnail:', thumbnailError);
-        return NextResponse.json(
-          { 
-            error: 'No preview available for this Figma file. Try using a direct file link.',
-            fileKey 
-          },
-          { status: 404 }
-        );
       }
+      
+      const imageData = await imageResponse.json();
+      const imageUrl = imageData.images && imageData.images[cleanNodeId];
+      
+      if (!imageUrl) {
+        console.error('No image URL returned for node:', cleanNodeId);
+        // Try to get a thumbnail of the file
+        try {
+          console.log('Attempting to get file thumbnail as fallback');
+          return NextResponse.json({ 
+            imageUrl: `https://www.figma.com/file/${fileKey}/thumbnail`,
+            nodeId: 'thumbnail',
+            warning: 'No image available for specified node, using thumbnail instead',
+            success: true,
+            fileKey
+          });
+        } catch (thumbnailError) {
+          console.error('Error getting thumbnail:', thumbnailError);
+          return NextResponse.json(
+            { 
+              error: 'No preview available for this Figma file. Try using a direct file link.',
+              fileKey 
+            },
+            { status: 404 }
+          );
+        }
+      }
+      
+      console.log('Successfully fetched image URL for node:', cleanNodeId);
+      return NextResponse.json({ 
+        imageUrl,
+        nodeId: cleanNodeId,
+        success: true,
+        fileKey
+      });
+    } catch (requestError) {
+      console.error('Error making request to Figma API:', requestError);
+      // Return thumbnail as ultimate fallback
+      return NextResponse.json({ 
+        imageUrl: `https://www.figma.com/file/${fileKey}/thumbnail`,
+        warning: 'Error requesting node image, using thumbnail instead',
+        success: true,
+        fileKey
+      });
     }
-    
-    console.log('Successfully fetched image URL for node:', cleanNodeId);
-    return NextResponse.json({ 
-      imageUrl,
-      nodeId: cleanNodeId,
-      success: true,
-      fileKey
-    });
   } catch (error) {
     console.error('Error in getImageForNode:', error);
     // Return thumbnail as ultimate fallback
