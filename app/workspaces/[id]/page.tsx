@@ -199,14 +199,17 @@ export default function WorkspacePage() {
       
       // Match patterns for different Figma link formats
       
-      // Standard file links: https://www.figma.com/file/abcdef123456/
-      const fileMatch = figmaLink.match(/(?:file|design|proto)\/([a-zA-Z0-9]+)/i);
+      // Standard file links: https://www.figma.com/file/{FILE_ID}/{FILENAME}
+      const fileMatch = figmaLink.match(/file\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
       
-      // Prototype links: https://www.figma.com/proto/abcdef123456/
-      const protoMatch = figmaLink.match(/proto\/([a-zA-Z0-9]+)\//i);
+      // Prototype links: https://www.figma.com/proto/{FILE_ID}/{FILENAME}
+      const protoMatch = figmaLink.match(/proto\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
       
-      // Community files: https://www.figma.com/community/file/abcdef123456/
-      const communityMatch = figmaLink.match(/community\/(?:file|design)\/([a-zA-Z0-9]+)/i);
+      // Design links: https://www.figma.com/design/{FILE_ID}/{FILENAME}
+      const designMatch = figmaLink.match(/design\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
+      
+      // Community files: https://www.figma.com/community/file/{FILE_ID}/{FILENAME}
+      const communityMatch = figmaLink.match(/community\/(?:file|design)\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
       
       // Extract node ID if present
       const nodeMatch = figmaLink.match(/node-id=([^&\s]+)/i);
@@ -214,16 +217,19 @@ export default function WorkspacePage() {
       // Use the first match we find
       if (fileMatch && fileMatch[1]) {
         fileKey = fileMatch[1];
-        console.log('Extracted file key from standard link:', fileKey);
+        console.log('Extracted file key from standard file link:', fileKey);
       } else if (protoMatch && protoMatch[1]) {
         fileKey = protoMatch[1];
         console.log('Extracted file key from prototype link:', fileKey);
+      } else if (designMatch && designMatch[1]) {
+        fileKey = designMatch[1];
+        console.log('Extracted file key from design link:', fileKey);
       } else if (communityMatch && communityMatch[1]) {
         fileKey = communityMatch[1];
         console.log('Extracted file key from community link:', fileKey);
       } else {
         // Try to find any sequence that looks like a Figma file key
-        const genericKeyMatch = figmaLink.match(/([a-zA-Z0-9]{15,})/);
+        const genericKeyMatch = figmaLink.match(/([a-zA-Z0-9_-]{15,})/);
         if (genericKeyMatch && genericKeyMatch[1]) {
           fileKey = genericKeyMatch[1];
           console.log('Extracted potential file key using generic pattern:', fileKey);
