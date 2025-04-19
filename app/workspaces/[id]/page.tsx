@@ -222,8 +222,13 @@ export default function WorkspacePage() {
       // First try the public thumbnail URL as a fast fallback
       const thumbnailUrl = `https://www.figma.com/file/${fileKey}/thumbnail`;
       
-      // Call our API endpoint to get the image - add devMode for development
-      const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}&devMode=true`);
+      // Check environment first to see if we have API keys
+      const envCheckResponse = await fetch('/api/check-env');
+      const envData = await envCheckResponse.json();
+      const shouldUseDevMode = envData.figmaTokenStatus !== 'Set';
+      
+      // Call our API endpoint to get the image - only use devMode if needed
+      const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}${shouldUseDevMode ? '&devMode=true' : ''}`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -259,6 +264,11 @@ export default function WorkspacePage() {
         throw new Error('You must be logged in to generate copy');
       }
       
+      // Check environment first to see if we have API keys
+      const envCheckResponse = await fetch('/api/check-env');
+      const envData = await envCheckResponse.json();
+      const shouldUseDevMode = envData.openaiKeyStatus !== 'Set';
+      
       // Create the request payload with Figma link data if available
       const payload = {
         workspaceId,
@@ -272,8 +282,8 @@ export default function WorkspacePage() {
         elementType: formData.type,
         // Include Figma design link data if available
         elementData: figmaLink ? { figmaLink } : undefined,
-        // Enable dev mode for API calls
-        devMode: true
+        // Only enable dev mode if needed
+        ...(shouldUseDevMode && { devMode: true })
       };
       
       console.log('Sending copy generation request:', payload);
