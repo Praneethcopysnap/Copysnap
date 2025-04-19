@@ -197,19 +197,19 @@ export default function WorkspacePage() {
       let fileKey = null;
       let nodeId = null;
       
-      // Match patterns for different Figma link formats
+      // Match patterns for different Figma link formats - Figma IDs don't have hyphens
       
       // Standard file links: https://www.figma.com/file/{FILE_ID}/{FILENAME}
-      const fileMatch = figmaLink.match(/file\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
+      const fileMatch = figmaLink.match(/file\/([a-zA-Z0-9]+)(?:\/|$)/i);
       
       // Prototype links: https://www.figma.com/proto/{FILE_ID}/{FILENAME}
-      const protoMatch = figmaLink.match(/proto\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
+      const protoMatch = figmaLink.match(/proto\/([a-zA-Z0-9]+)(?:\/|$)/i);
       
       // Design links: https://www.figma.com/design/{FILE_ID}/{FILENAME}
-      const designMatch = figmaLink.match(/design\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
+      const designMatch = figmaLink.match(/design\/([a-zA-Z0-9]+)(?:\/|$)/i);
       
       // Community files: https://www.figma.com/community/file/{FILE_ID}/{FILENAME}
-      const communityMatch = figmaLink.match(/community\/(?:file|design)\/([a-zA-Z0-9_-]+)(?:\/|$)/i);
+      const communityMatch = figmaLink.match(/community\/(?:file|design)\/([a-zA-Z0-9]+)(?:\/|$)/i);
       
       // Extract node ID if present
       const nodeMatch = figmaLink.match(/node-id=([^&\s]+)/i);
@@ -228,8 +228,8 @@ export default function WorkspacePage() {
         fileKey = communityMatch[1];
         console.log('Extracted file key from community link:', fileKey);
       } else {
-        // Try to find any sequence that looks like a Figma file key
-        const genericKeyMatch = figmaLink.match(/([a-zA-Z0-9_-]{15,})/);
+        // Try to find any sequence that looks like a Figma file key (no hyphens)
+        const genericKeyMatch = figmaLink.match(/([a-zA-Z0-9]{15,})/);
         if (genericKeyMatch && genericKeyMatch[1]) {
           fileKey = genericKeyMatch[1];
           console.log('Extracted potential file key using generic pattern:', fileKey);

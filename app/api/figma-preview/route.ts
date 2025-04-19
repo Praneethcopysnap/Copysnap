@@ -30,9 +30,9 @@ export async function GET(request: Request) {
       );
     }
     
-    // Sanitize the file key to ensure it only contains valid characters
-    // Figma file keys should only contain letters, numbers, hyphens, and underscores
-    const sanitizedFileKey = fileKey.replace(/[^a-zA-Z0-9_-]/g, '');
+    // Sanitize the file key - Figma only uses alphanumeric characters, no hyphens
+    // Standard Figma file keys are alphanumeric only
+    const sanitizedFileKey = fileKey.replace(/[^a-zA-Z0-9]/g, '');
     
     // Log if we had to sanitize the key
     if (sanitizedFileKey !== fileKey) {
