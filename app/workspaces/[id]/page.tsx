@@ -197,18 +197,39 @@ export default function WorkspacePage() {
       let fileKey = null;
       let nodeId = null;
       
-      // Match patterns for different Figma link types
-      // Standard file or design links
+      // Match patterns for different Figma link formats
+      
+      // Standard file links: https://www.figma.com/file/abcdef123456/
       const fileMatch = figmaLink.match(/(?:file|design|proto)\/([a-zA-Z0-9]+)/i);
+      
+      // Prototype links: https://www.figma.com/proto/abcdef123456/
+      const protoMatch = figmaLink.match(/proto\/([a-zA-Z0-9]+)\//i);
+      
+      // Community files: https://www.figma.com/community/file/abcdef123456/
+      const communityMatch = figmaLink.match(/community\/(?:file|design)\/([a-zA-Z0-9]+)/i);
       
       // Extract node ID if present
       const nodeMatch = figmaLink.match(/node-id=([^&\s]+)/i);
       
+      // Use the first match we find
       if (fileMatch && fileMatch[1]) {
         fileKey = fileMatch[1];
-        console.log('Extracted file key:', fileKey);
+        console.log('Extracted file key from standard link:', fileKey);
+      } else if (protoMatch && protoMatch[1]) {
+        fileKey = protoMatch[1];
+        console.log('Extracted file key from prototype link:', fileKey);
+      } else if (communityMatch && communityMatch[1]) {
+        fileKey = communityMatch[1];
+        console.log('Extracted file key from community link:', fileKey);
       } else {
-        throw new Error('Could not extract Figma file key from link. Please use a valid Figma link.');
+        // Try to find any sequence that looks like a Figma file key
+        const genericKeyMatch = figmaLink.match(/([a-zA-Z0-9]{15,})/);
+        if (genericKeyMatch && genericKeyMatch[1]) {
+          fileKey = genericKeyMatch[1];
+          console.log('Extracted potential file key using generic pattern:', fileKey);
+        } else {
+          throw new Error('Could not extract Figma file key from link. Please use a valid Figma link.');
+        }
       }
       
       // Extract node ID if present
@@ -219,21 +240,36 @@ export default function WorkspacePage() {
       
       console.log('Fetching Figma preview for:', { fileKey, nodeId });
       
-      // First try the public thumbnail URL as a fast fallback
-      const thumbnailUrl = `https://www.figma.com/file/${fileKey}/thumbnail`;
-      
       // Check environment first to see if we have API keys
       const envCheckResponse = await fetch('/api/check-env');
       const envData = await envCheckResponse.json();
       const shouldUseDevMode = envData.figmaTokenStatus !== 'Set';
       
-      // Call our API endpoint to get the image - only use devMode if needed
-      const response = await fetch(`/api/figma-preview?fileKey=${fileKey}${nodeId ? `&nodeId=${nodeId}` : ''}${shouldUseDevMode ? '&devMode=true' : ''}`);
-      const data = await response.json();
+      // Construct the proper URL with query parameters
+      const apiUrl = new URL('/api/figma-preview', window.location.origin.toString());
+      apiUrl.searchParams.append('fileKey', fileKey || '');
+      if (nodeId) {
+        apiUrl.searchParams.append('nodeId', nodeId);
+      }
+      if (shouldUseDevMode) {
+        apiUrl.searchParams.append('devMode', 'true');
+      }
+      
+      console.log('Making request to:', apiUrl.toString());
+      
+      // Call our API endpoint to get the image
+      const response = await fetch(apiUrl.toString());
       
       if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `HTTP error ${response.status}` };
+        }
+        
         // Handle specific error types
-        if (response.status === 401 && data.requiresConfig) {
+        if (response.status === 401 && errorData.requiresConfig) {
           throw new Error('Figma API token is not configured. Please add it to your environment settings.');
         } else if (response.status === 404) {
           throw new Error('Figma file not found. Please check the link and make sure the file exists.');
@@ -243,11 +279,18 @@ export default function WorkspacePage() {
           throw new Error('Figma API rate limit exceeded. Please try again later.');
         }
         
-        console.error('Figma API error:', data);
-        throw new Error(data.error || 'Failed to load Figma preview');
+        console.error('Figma API error:', errorData);
+        throw new Error(errorData.error || 'Failed to load Figma preview');
       }
       
-      return data.imageUrl || data.image || thumbnailUrl;
+      const data = await response.json();
+      
+      // Fallback to thumbnail URL if needed
+      if (!data.imageUrl && !data.image) {
+        return `https://www.figma.com/file/${fileKey}/thumbnail`;
+      }
+      
+      return data.imageUrl || data.image;
     } catch (error) {
       console.error('Error fetching Figma preview:', error);
       throw error; // Propagate the error to be handled by the caller
