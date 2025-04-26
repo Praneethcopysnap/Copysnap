@@ -8,6 +8,7 @@ import { Button } from '@/app/components/ui/button'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import AuthSidePanel from '../components/AuthSidePanel'
 import PageTransition from '../components/PageTransition'
+import FigmaLoginButton from '../components/FigmaLoginButton'
 
 export default function SignUp() {
   const [email, setEmail] = useState('')
@@ -206,6 +207,17 @@ export default function SignUp() {
             <h2 className="text-center text-xl font-semibold">Create your account</h2>
             
             <form onSubmit={handleSignUp} className="space-y-6">
+              {/* Figma Signup Button */}
+              <div className="space-y-4">
+                <FigmaLoginButton mode="signup" />
+                
+                <div className="relative flex py-3 items-center">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="flex-shrink mx-3 text-gray-500 text-sm">or continue with email</span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+              </div>
+              
               {/* Full Name field */}
               <div className="space-y-2">
                 <label htmlFor="full-name" className="block text-sm font-medium text-gray-700">

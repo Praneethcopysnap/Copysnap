@@ -15,7 +15,12 @@ export async function GET(request: Request) {
   try {
     // Get the fileKey and nodeId from query parameters
     const { searchParams } = new URL(request.url);
-    const fileKey = searchParams.get('fileKey');
+    const extractFigmaFileKey = (value: string): string => {
+      const match = value.match(/(?:file|design)\/([a-zA-Z0-9]{22})/);
+      return match && match[1] ? match[1] : value;
+    };
+    const rawKey = searchParams.get('fileKey') || '';
+    const fileKey = extractFigmaFileKey(rawKey);
     const nodeId = searchParams.get('nodeId') || '';
     // Check for dev mode
     const devMode = searchParams.get('devMode') === 'true';
@@ -349,19 +354,13 @@ async function getImageForFileNoNode(fileKey: string) {
     // Additional error handling around API response
     try {
       const imageResponse = await fetch(
-        `https://api.figma.com/v1/files/${fileKey}/images`, 
-        {
-          method: 'POST',
-          headers: {
-            'X-Figma-Token': FIGMA_API_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            format: 'png',
-            scale: 2
-          })
-        }
-      );
+        `https://api.figma.com/v1/images/${fileKey}?format=png&scale=2`, 
+  {
+    headers: {
+      'X-Figma-Token': FIGMA_API_TOKEN
+    }
+  }
+);
       
       if (!imageResponse.ok) {
         let errorData;

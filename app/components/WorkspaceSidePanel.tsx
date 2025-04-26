@@ -20,6 +20,7 @@ interface WorkspaceSidePanelProps {
   }) => void;
   isSubmitting: boolean;
   title: string;
+  embedded?: boolean; // Optional flag for use in onboarding
 }
 
 type TonePreset = 'friendly' | 'professional' | 'playful' | 'minimal';
@@ -42,7 +43,8 @@ const WorkspaceSidePanel = ({
   onClose,
   onSubmit,
   isSubmitting,
-  title
+  title,
+  embedded
 }: WorkspaceSidePanelProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -164,40 +166,47 @@ const WorkspaceSidePanel = ({
 
   return (
     <>
-      {/* Background overlay */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={overlayVariants}
-        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
-        onClick={onClose}
-      />
+      {/* Background overlay - only show when not embedded */}
+      {!embedded && (
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={overlayVariants}
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50"
+          onClick={onClose}
+        />
+      )}
       
-      {/* Sliding panel */}
+      {/* Panel content - with different styling based on embedded mode */}
       <motion.div
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={panelVariants}
+        initial={embedded ? { opacity: 0 } : "hidden"}
+        animate={embedded ? { opacity: 1 } : "visible"}
+        exit={embedded ? { opacity: 0 } : "exit"}
+        variants={!embedded ? panelVariants : undefined}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="fixed top-0 right-0 h-full w-[85%] md:w-[70%] max-w-3xl bg-white shadow-xl z-50 flex flex-col"
+        className={`${embedded 
+          ? "w-full overflow-hidden rounded-lg border border-gray-200" 
+          : "fixed top-0 right-0 h-full w-[85%] md:w-[70%] max-w-3xl bg-white shadow-xl z-50"
+        } flex flex-col`}
         onClick={e => e.stopPropagation()}
       >
         {/* Panel header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-          <button
-            className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
-            onClick={onClose}
-            aria-label="Close panel"
-          >
-            <X size={20} />
-          </button>
+          {!embedded && (
+            <button
+              className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              onClick={onClose}
+              aria-label="Close panel"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
         
-        {/* Panel content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        {/* Panel content - with different max-height for embedded mode */}
+        <div className={`flex-1 overflow-y-auto px-6 py-4 ${embedded ? 'max-h-[60vh]' : ''}`}>
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Workspace Details Section */}
             <div>
@@ -462,19 +471,16 @@ const WorkspaceSidePanel = ({
           >
             {isSubmitting ? (
               <>
-                <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
-                <span>Creating...</span>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
               </>
             ) : (
               <>
-                {useAI ? (
-                  <>
-                    <Zap size={16} className="text-white" />
-                    <span>Create & Enable AI Copying</span>
-                  </>
-                ) : (
-                  <span>Create Workspace</span>
-                )}
+                <CheckCircle className="mr-2 h-4 w-4" />
+                {embedded ? 'Continue' : 'Create Workspace'}
               </>
             )}
           </button>

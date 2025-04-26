@@ -76,3 +76,16 @@ To properly display the CopySnap logo:
 1. Create a `public/images` directory in the project root if it doesn't already exist
 2. Save the CopySnap logo file as `logo.png` in the `public/images` directory
 3. The logo will automatically appear in the header component 
+
+## Figma OAuth Setup
+
+To enable "Login with Figma" functionality, you need to set up Figma as an OAuth provider in Supabase:
+
+1. Create a Figma Developer account at https://www.figma.com/developers
+2. Create a new OAuth app in the Figma Developer Console
+3. Set the redirect URI to: `https://[YOUR_SUPABASE_PROJECT_REF].supabase.co/auth/v1/callback`
+4. Copy the Client ID and Client Secret
+5. In Supabase dashboard, go to Authentication > Providers
+6. Enable Figma provider and paste the Client ID and Client Secret
+7. Add your site URL in the Site URL field in the Supabase dashboard
+8. Ensure the redirect URLs are properly configured in both Figma and Supabase 

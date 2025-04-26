@@ -108,6 +108,24 @@ export default function Dashboard() {
           return;
         }
         
+        // Check if user has completed onboarding
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('has_completed_onboarding')
+            .eq('id', user.id)
+            .single();
+          
+          if (!userError && userData && userData.has_completed_onboarding === false) {
+            console.log('User has not completed onboarding, redirecting...');
+            router.push('/onboarding');
+            return;
+          }
+        } catch (onboardingError) {
+          console.error('Error checking onboarding status:', onboardingError);
+          // Continue loading dashboard even if we can't check onboarding status
+        }
+        
         // Second phase - get profile data
         try {
           const profile = await profileService.getCurrentUserProfile();

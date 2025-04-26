@@ -8,6 +8,7 @@ import { Button } from '@/app/components/ui/button'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import AuthSidePanel from '../components/AuthSidePanel'
 import PageTransition from '../components/PageTransition'
+import FigmaLoginButton from '../components/FigmaLoginButton'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -58,13 +59,30 @@ export default function Login() {
 
       console.log('Login successful, session:', data.session ? 'Valid' : 'Invalid')
       
-      // Navigate to dashboard with a forced refresh
-      if (typeof window !== 'undefined') {
-        console.log('Redirecting to dashboard...')
-        window.location.href = '/dashboard'
+      // Check if user has completed onboarding
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('has_completed_onboarding')
+        .eq('id', data.user.id)
+        .single();
+      
+      // Redirect based on onboarding status
+      if (!userError && userData?.has_completed_onboarding) {
+        console.log('User has completed onboarding, redirecting to dashboard');
+        if (typeof window !== 'undefined') {
+          window.location.href = '/dashboard';
+        } else {
+          router.push('/dashboard');
+          router.refresh();
+        }
       } else {
-        router.push('/dashboard')
-        router.refresh()
+        console.log('User needs to complete onboarding');
+        if (typeof window !== 'undefined') {
+          window.location.href = '/onboarding';
+        } else {
+          router.push('/onboarding');
+          router.refresh();
+        }
       }
     } catch (err) {
       console.error('Login exception:', err)
@@ -113,6 +131,17 @@ export default function Login() {
             
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-6">
+              {/* Figma Login Button */}
+              <div className="space-y-4">
+                <FigmaLoginButton mode="login" />
+                
+                <div className="relative flex py-3 items-center">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="flex-shrink mx-3 text-gray-500 text-sm">or continue with email</span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+              </div>
+              
               {/* Email field */}
               <div className="space-y-2">
                 <label htmlFor="email-address" className="block text-sm font-medium text-gray-700">

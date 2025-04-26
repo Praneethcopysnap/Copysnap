@@ -8,10 +8,10 @@ import { motion } from 'framer-motion'
 export default function VerificationSuccess() {
   const router = useRouter()
 
-  // Redirect to login page after 5 seconds
+  // Redirect to onboarding page after 5 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/login')
+      router.push('/onboarding')
     }, 5000)
 
     return () => clearTimeout(timer)
@@ -39,14 +39,14 @@ export default function VerificationSuccess() {
               Your email has been successfully verified.
             </p>
             <p className="mt-4 text-sm text-gray-600">
-              You can now sign in to your account.
+              Let's set up your account preferences.
             </p>
             <div className="mt-6">
               <Link 
-                href="/login" 
+                href="/onboarding" 
                 className="text-primary hover:text-primary/80 font-medium"
               >
-                Go to login page
+                Go to onboarding
               </Link>
             </div>
             <p className="mt-2 text-xs text-gray-500">
