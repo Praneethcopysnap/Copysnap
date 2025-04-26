@@ -17,7 +17,8 @@ interface FigmaTokenResponse {
   expires_in: number;
 }
 
-const FIGMA_CLIENT_ID = process.env.FIGMA_CLIENT_ID || 'IP8DgmLrOAgHIGqxFryeV';
+// Make sure this matches EXACTLY with the client ID in your Figma Developer Dashboard
+const FIGMA_CLIENT_ID = process.env.FIGMA_CLIENT_ID || 'lP80gmLrQMgHiGqxjFryeV';
 const FIGMA_CLIENT_SECRET = process.env.FIGMA_CLIENT_SECRET || '7q**********'; // Replace with your actual secret
 
 // Demo mode flag - in production, set this to false

@@ -31,8 +31,9 @@ export default function FigmaLoginButton({ mode = 'login', className = '' }: Fig
     try {
       setLoading(true);
       
-      // Get client ID from environment variable
-      const clientId = process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID || 'IP8DgmLrOAgHIGqxFryeV';
+      // Get client ID from environment variable - MAKE SURE THIS MATCHES EXACTLY
+      // IP8DgmLrOAgHIGqxFryeV seems incorrect - using the value from the screenshot
+      const clientId = process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID || 'lP80gmLrQMgHiGqxjFryeV';
       
       // Create the Figma OAuth URL
       const figmaAuthUrl = new URL('https://www.figma.com/oauth');
@@ -53,6 +54,7 @@ export default function FigmaLoginButton({ mode = 'login', className = '' }: Fig
       // Log the URL and redirect URI for debugging
       console.log('Figma Auth URL:', figmaAuthUrl.toString());
       console.log('Redirect URI:', redirectUri);
+      console.log('Client ID:', clientId);
       
       // Redirect to Figma for OAuth
       window.location.href = figmaAuthUrl.toString();
