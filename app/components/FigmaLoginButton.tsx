@@ -89,8 +89,7 @@ export default function FigmaLoginButton({ mode = 'login', className = '' }: Fig
       {error && <p className="text-sm text-red-500">{error}</p>}
       
       <p className="text-xs text-muted-foreground text-center">
-        Demo Mode: In this demo, a placeholder user will be created when you authenticate.
-        In production, actual user data would be retrieved from Figma.
+        Connect with your Figma account to access your designs and collaborate seamlessly.
       </p>
     </div>
   );

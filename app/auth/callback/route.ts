@@ -19,10 +19,12 @@ interface FigmaTokenResponse {
 
 // Make sure this matches EXACTLY with the client ID in your Figma Developer Dashboard
 const FIGMA_CLIENT_ID = process.env.FIGMA_CLIENT_ID || 'lP80gmLrQMgHiGqxjFryeV';
-const FIGMA_CLIENT_SECRET = process.env.FIGMA_CLIENT_SECRET || '7q**********'; // Replace with your actual secret
+// IMPORTANT: You must set your actual Figma client secret in environment variables
+// for production authentication to work properly
+const FIGMA_CLIENT_SECRET = process.env.FIGMA_CLIENT_SECRET || '';
 
-// Demo mode flag - in production, set this to false
-const DEMO_MODE = true;
+// Set to false to enable real Figma authentication in production
+const DEMO_MODE = false;
 
 // Exchange the authorization code for an access token
 async function exchangeCodeForToken(
