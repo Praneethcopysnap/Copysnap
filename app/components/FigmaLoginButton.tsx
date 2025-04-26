@@ -27,41 +27,38 @@ export default function FigmaLoginButton({ mode = 'login', className = '' }: Fig
   }, []);
 
   // Function to handle Figma OAuth login
-  const handleFigmaLogin = async () => {
+  const handleFigmaLogin = () => {
     try {
       setLoading(true);
-      setError(null);
       
-      // Generate state for CSRF protection
-      const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      
-      // Store the state in localStorage for verification when redirected back
-      localStorage.setItem('figmaAuthState', state);
-      
-      // Use environment variable in production or fallback to demo client ID
-      const clientId = process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID || 'lP80gmLrQMgHiGqxjFryeV';
-      
-      // Set redirect URI - MUST match exactly what's configured in Figma Developer Dashboard
-      // In production, this should be your actual domain
-      const redirectUri = process.env.NEXT_PUBLIC_FIGMA_REDIRECT_URI || 'https://www.copysnap.in/auth/callback';
+      // Get client ID from environment variable
+      const clientId = process.env.NEXT_PUBLIC_FIGMA_CLIENT_ID || 'IP8DgmLrOAgHIGqxFryeV';
       
       // Create the Figma OAuth URL
       const figmaAuthUrl = new URL('https://www.figma.com/oauth');
+      
+      // Determine the correct redirect URI based on environment
+      const isProduction = window.location.hostname !== 'localhost';
+      const redirectUri = isProduction 
+        ? 'https://www.copysnap.in/auth/callback'  // Production
+        : `${window.location.origin}/auth/callback`; // Development
+      
+      // Add required parameters
       figmaAuthUrl.searchParams.append('client_id', clientId);
       figmaAuthUrl.searchParams.append('redirect_uri', redirectUri);
-      figmaAuthUrl.searchParams.append('scope', 'file_read');
-      figmaAuthUrl.searchParams.append('state', state);
+      figmaAuthUrl.searchParams.append('scope', 'files:read');
+      figmaAuthUrl.searchParams.append('state', 'figma-auth');
       figmaAuthUrl.searchParams.append('response_type', 'code');
       
-      // Log the OAuth URL for debugging in development
-      console.log('Redirecting to Figma OAuth URL:', figmaAuthUrl.toString());
-      console.log('Using redirect URI:', redirectUri);
+      // Log the URL and redirect URI for debugging
+      console.log('Figma Auth URL:', figmaAuthUrl.toString());
+      console.log('Redirect URI:', redirectUri);
       
-      // Redirect to Figma's OAuth page
+      // Redirect to Figma for OAuth
       window.location.href = figmaAuthUrl.toString();
-    } catch (err) {
-      console.error('Error initiating Figma login:', err);
-      setError('Failed to connect to Figma. Please try again.');
+    } catch (error) {
+      console.error('Error during Figma login:', error);
+      setError('Failed to initiate Figma login. Please try again.');
       setLoading(false);
     }
   };

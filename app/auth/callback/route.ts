@@ -17,6 +17,12 @@ interface FigmaTokenResponse {
   expires_in: number;
 }
 
+const FIGMA_CLIENT_ID = process.env.FIGMA_CLIENT_ID || 'IP8DgmLrOAgHIGqxFryeV';
+const FIGMA_CLIENT_SECRET = process.env.FIGMA_CLIENT_SECRET || '7q**********'; // Replace with your actual secret
+
+// Demo mode flag - in production, set this to false
+const DEMO_MODE = true;
+
 // Exchange the authorization code for an access token
 async function exchangeCodeForToken(
   code: string,
@@ -75,119 +81,171 @@ async function fetchFigmaUserData(accessToken: string): Promise<FigmaUser | null
 }
 
 export async function GET(request: NextRequest) {
+  // Get the URL object to extract query parameters
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get('code');
+  const state = requestUrl.searchParams.get('state');
+  const error = requestUrl.searchParams.get('error');
+  const errorDescription = requestUrl.searchParams.get('error_description');
+  
+  // Create a Supabase client
+  const supabase = createRouteHandlerClient({ cookies });
+  
+  // Log the full callback URL for debugging
+  console.log('Auth callback received at URL:', request.url);
+  console.log('Query parameters:', Object.fromEntries(requestUrl.searchParams));
+  
+  // Handle errors from Figma
+  if (error) {
+    console.error('Figma OAuth error:', error, errorDescription);
+    return NextResponse.redirect(`${requestUrl.origin}/login?error=authentication_failed&reason=${errorDescription || error}`);
+  }
+  
+  // Check if the code is present
+  if (!code) {
+    console.error('No code received from Figma');
+    return NextResponse.redirect(`${requestUrl.origin}/login?error=missing_code`);
+  }
+  
+  // Validate state parameter for security (prevents CSRF)
+  if (state !== 'figma-auth') {
+    console.error('Invalid state parameter');
+    return NextResponse.redirect(`${requestUrl.origin}/login?error=invalid_state`);
+  }
+  
   try {
-    // Get auth code and state from URL
-    const requestUrl = new URL(request.url)
-    console.log("Auth callback URL received");
-    
-    const code = requestUrl.searchParams.get('code')
-    const state = requestUrl.searchParams.get('state')
-    
-    // Check if we have a code from Figma
-    if (!code) {
-      console.error('Auth callback missing code parameter')
-      return NextResponse.redirect(new URL('/login?error=No+authorization+code', 'https://www.copysnap.in'))
-    }
-    
-    // Check if there's an error returned from Figma
-    const error = requestUrl.searchParams.get('error')
-    const errorDescription = requestUrl.searchParams.get('error_description')
-    
-    if (error) {
-      console.error(`Auth error: ${error}`, errorDescription);
-      return NextResponse.redirect(new URL(`/login?error=${error}&description=${errorDescription || ''}`, 'https://www.copysnap.in'))
-    }
-    
-    try {
-      // DEMO MODE: Since we don't have a client secret in this demo, 
-      // we'll use mock data instead of actual token exchange
+    if (DEMO_MODE) {
+      // DEMO MODE: Create a demo user instead of making real API calls
+      console.log('Running in DEMO mode - creating mock user session');
       
-      // In production, you would do:
-      // 1. const tokenData = await exchangeCodeForToken(code, 'https://www.copysnap.in/auth/callback');
-      // 2. if (!tokenData) throw new Error('Failed to exchange code for token');
-      // 3. const userData = await fetchFigmaUserData(tokenData.access_token);
-      
-      // Instead, we'll use mock data for the demo
-      const userData: FigmaUser = {
-        id: `figma-${Date.now()}`,
-        email: `user-${Date.now().toString(36)}@figmauser.com`,
-        handle: 'Figma User',
-        img_url: 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'
-      };
-      
-      // Create a Supabase client
-      const cookieStore = cookies()
-      const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-      
-      // Generate a secure password for this user
-      // In production, you would use a proper auth provider integration
-      const securePassword = `secure-pwd-${Date.now().toString(36)}-${Math.random().toString(36).substring(2)}`;
-      
-      // Try to sign in the user or create a new account
-      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: userData.email,
-        password: securePassword
-      });
-      
-      if (signInError?.message.includes('Invalid login credentials')) {
-        // User doesn't exist, create a new account
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: userData.email,
-          password: securePassword,
+      // Get or create demo user
+      const { data: { user }, error: userError } = await supabase.auth.signInWithPassword({
+        email: 'demo@copysnap.in',
+        password: process.env.DEMO_USER_PASSWORD || 'demo-password-123'
+      }).catch(async () => {
+        // If sign-in fails, try to create the user
+        return await supabase.auth.signUp({
+          email: 'demo@copysnap.in',
+          password: process.env.DEMO_USER_PASSWORD || 'demo-password-123',
           options: {
             data: {
-              full_name: userData.handle,
-              avatar_url: userData.img_url,
-              figma_user_id: userData.id,
-              provider: 'figma'
+              full_name: 'Demo User',
+              figma_id: 'demo-figma-user',
+              figma_name: 'Demo User',
+              figma_email: 'demo@copysnap.in',
+              figma_img: 'https://placehold.co/200x200/5000ff/ffffff?text=DEMO'
+            }
+          }
+        });
+      });
+      
+      if (userError) {
+        console.error('Error with demo user:', userError);
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=demo_user_error`);
+      }
+      
+      console.log('Demo user session created:', user?.id);
+      return NextResponse.redirect(`${requestUrl.origin}/dashboard?success=demo_login`);
+    } else {
+      // PRODUCTION MODE: Exchange the authorization code for an access token
+      console.log('Exchanging authorization code for Figma access token');
+      
+      const tokenResponse = await fetch('https://www.figma.com/api/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          client_id: FIGMA_CLIENT_ID,
+          client_secret: FIGMA_CLIENT_SECRET,
+          redirect_uri: `${requestUrl.origin}/auth/callback`,
+          code,
+          grant_type: 'authorization_code'
+        })
+      });
+      
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.text();
+        console.error('Token exchange failed:', tokenResponse.status, errorData);
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=token_exchange_failed`);
+      }
+      
+      const tokenData = await tokenResponse.json();
+      console.log('Received token from Figma:', Object.keys(tokenData));
+      
+      // Fetch user information from Figma
+      const userResponse = await fetch('https://api.figma.com/v1/me', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`
+        }
+      });
+      
+      if (!userResponse.ok) {
+        console.error('Failed to fetch Figma user data:', userResponse.status);
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=user_fetch_failed`);
+      }
+      
+      const figmaUser = await userResponse.json();
+      console.log('Figma user data:', figmaUser);
+      
+      // Check if user exists in Supabase
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('figma_id', figmaUser.id)
+        .single();
+      
+      if (existingUser) {
+        // User exists, sign them in
+        console.log('Existing user found:', existingUser.id);
+        const { error: signInError } = await supabase.auth.signInWithIdToken({
+          provider: 'figma',
+          token: tokenData.access_token,
+          nonce: state,
+        });
+        
+        if (signInError) {
+          console.error('Error signing in user:', signInError);
+          return NextResponse.redirect(`${requestUrl.origin}/login?error=signin_failed`);
+        }
+      } else {
+        // New user, create an account
+        console.log('Creating new user for Figma user:', figmaUser.id);
+        
+        // Generate a random password for the user
+        const password = Math.random().toString(36).slice(-10);
+        
+        // Create a new user in Supabase
+        const { data: newUser, error: signUpError } = await supabase.auth.signUp({
+          email: figmaUser.email,
+          password,
+          options: {
+            data: {
+              full_name: figmaUser.name,
+              figma_id: figmaUser.id,
+              figma_name: figmaUser.name,
+              figma_email: figmaUser.email,
+              figma_img: figmaUser.img_url,
+              // Store encrypted access token if needed for API calls
+              figma_access_token: tokenData.access_token,
+              figma_refresh_token: tokenData.refresh_token
             }
           }
         });
         
         if (signUpError) {
-          console.error('Error creating user account:', signUpError);
-          return NextResponse.redirect(new URL('/login?error=Account+creation+failed', 'https://www.copysnap.in'));
+          console.error('Error creating new user:', signUpError);
+          return NextResponse.redirect(`${requestUrl.origin}/login?error=signup_failed`);
         }
         
-        // Store the Figma token data for future API calls (in production)
-        // In a real implementation, you would securely store the tokens
-        // await supabase.from('user_integrations').insert({
-        //   user_id: signUpData.user.id,
-        //   provider: 'figma',
-        //   access_token: tokenData.access_token,
-        //   refresh_token: tokenData.refresh_token,
-        //   expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
-        // });
-        
-        // New user created, redirect to onboarding
-        return NextResponse.redirect(new URL('/onboarding', 'https://www.copysnap.in'));
-      } else if (signInError) {
-        // Other error
-        console.error('Error signing in:', signInError);
-        return NextResponse.redirect(new URL(`/login?error=Authentication+failed&details=${encodeURIComponent(signInError.message)}`, 'https://www.copysnap.in'));
+        console.log('New user created:', newUser?.user?.id);
       }
       
-      // User already exists, check if they need onboarding
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-      
-      // Redirect based on onboarding status
-      if (!profile || !profile.onboarding_completed) {
-        return NextResponse.redirect(new URL('/onboarding', 'https://www.copysnap.in'));
-      } else {
-        return NextResponse.redirect(new URL('/dashboard', 'https://www.copysnap.in'));
-      }
-    } catch (processError) {
-      console.error("Exception during auth process:", processError);
-      const errorMessage = processError instanceof Error ? processError.message : 'Unknown error';
-      return NextResponse.redirect(new URL(`/login?error=Authentication+failed&details=${encodeURIComponent(errorMessage)}`, 'https://www.copysnap.in'));
+      // Success! Redirect to the dashboard
+      return NextResponse.redirect(`${requestUrl.origin}/dashboard?success=true`);
     }
   } catch (error) {
-    console.error('Error in auth callback:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.redirect(new URL(`/login?error=Authentication+failed&details=${encodeURIComponent(errorMessage)}`, 'https://www.copysnap.in'));
+    console.error('Error in Figma authentication flow:', error);
+    return NextResponse.redirect(`${requestUrl.origin}/login?error=authentication_failed&reason=server_error`);
   }
 } 
